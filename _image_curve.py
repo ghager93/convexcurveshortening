@@ -1,14 +1,12 @@
 import numpy as np
 
-from bin.morphology.transforms import edge_transform
-from bin.utils.vector2d import Vector2D
-from bin.utils.vector2d import Vector2D
-from bin.morphology.utils import neighbour_array
+import _neighbour_array
+
 
 class ImageCurve():
     def __init__(self, im: np.ndarray):
         self._im = np.pad(im, 1)
-        self._im_curve = edge_transform(self._im)
+        self._im_curve = _edge_detect(self._im)
         self._visited = set()
         self._start = self._starting_point()
 
@@ -53,16 +51,18 @@ class ImageCurve():
 
         return self._start + n
 
-    def _neighbourhood(self, point: Vector2D):
+    def _neighbourhood(self, point: np.ndarray):
         # Returns 3x3 matrix of points in image around given point.
 
-        return self._im_curve[point.x - 1:point.x + 2, point.y - 1:point.y + 2]
+        return self._im_curve[point[0] - 1:point[0] + 2, point[1] - 1:point[1] + 2]
 
-    def _next_neighbour(self, point: Vector2D):
+    def _next_neighbour(self, point: np.ndarray):
         neighbours = list()
         neighbourhood = self._neighbourhood(point)
-        [neighbours.append(point + n) for n in neighbour_array.side_neighbour_coordinates(neighbourhood)]
-        [neighbours.append(point + n) for n in neighbour_array.diagonal_neighbour_coordinates(neighbourhood)]
+        # [neighbours.append(point + n) for n in neighbour_array.side_neighbour_coordinates(neighbourhood)]
+        # [neighbours.append(point + n) for n in neighbour_array.diagonal_neighbour_coordinates(neighbourhood)]
+        [neighbours.append(point + n) for n in _neighbour_array.side_neighbour_coordinates(neighbourhood) +
+         _neighbour_array.diagonal_neighbour_coordinates(neighbourhood)]
 
         neighbours = [n for n in neighbours if n not in self._visited]
 
@@ -73,14 +73,16 @@ class ImageCurve():
 
         return self._unpad(self._start)
 
-    def _unpad(self, point: Vector2D):
+    def _unpad(self, point: np.ndarray):
         return point - (1, 1)
 
-    def _unpad_list(self, list):
-        return [p - (1, 1) for p in list]
+    # def _unpad_list(self, list):
+    #     return [p - (1, 1) for p in list]
 
-    def edge_loop(self):
-        loop = [self._start]
+    def curve(self):
+        #  Create list of vertices, starting at the top-leftmost vertex and traversing clockwise using DFS.
+
+        curve = [self._start]
         self._visited = set()
         self._visited.add(self._start)
         self._visited.add(self._last_point())
@@ -88,8 +90,17 @@ class ImageCurve():
         curr = self._second_point()
         while curr:
             self._visited.add(curr)
-            loop.append(curr)
+            curve.append(curr)
             curr = self._next_neighbour(curr)
-        loop.append(self._last_point())
+        curve.append(self._last_point())
 
-        return self._unpad_list(loop)
+        return self._unpad(np.array(curve))
+
+
+def _edge_detect(array: np.ndarray):
+    # Binary edge detection.  Matrix is padded and XOR'd with the intersection of shifted versions of itself.
+    # Shifts are north, east, south and west.
+
+    array = np.pad(array, 1)
+    return array[1:-1, 1:-1] & np.invert(array[1:-1, :-2] & array[1:-1, 2:] &
+                                         array[:-2, 1:-1] & array[2:, 1:-1])
