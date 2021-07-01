@@ -5,10 +5,21 @@ import _neighbour_array
 
 class ImageCurve():
     def __init__(self, im: np.ndarray):
-        self._im = np.pad(im, 1)
+        self._im = self._prepare_im()
         self._im_curve = _edge_detect(self._im)
         self._visited = set()
         self._start = self._starting_point()
+
+    def _prepare_im(self):
+        # Flatten values such that image is binary.
+        self._im = np.where(self._im, 1, 0)
+
+        # If background (indicated by top-left pixel) is 1, invert image.
+        self._im = self._im ^ self._im[0, 0]
+
+        # Added single pad layer to prevent edge cases in search.
+        self._im = np.pad(self._im, 1)
+
 
     def _starting_point(self):
         # List of vertices starts at the vertex with minimum index (most top-left corner vertex).
