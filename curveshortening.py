@@ -1,12 +1,26 @@
 import numpy as np
 
+from scipy import ndimage
+from scipy import interpolate
+
 import _scaling_functions
 
-def convex_curve_shortening_flow(curve: np.ndarray):
+
+def convex_curve_shortening_flow(curve: np.ndarray,
+                                 step_size: float = 1,
+                                 step_sigma: float = 10,
+                                 resample_sigma: float = 1,
+                                 scaling_function_type: str = "sigmoid",
+                                 scaling_function_alpha: float = None,
+                                 scaling_function_a: float = None):
     '''
     Convex curve shortening.
 
+    :param scaling_function: Function type used for scaling the curvature magnitude vector.
+    :param resample_sigma: Standard deviation for the Gaussian filter used during resampling.
+    :param step_sigma: Standard deviation for the Gaussian filter used on the step vector.
     :param curve: Nx2 Numpy array, where N is the number of vertices in the curve.
+    :param step_size: Scales magnitude of each iteration.
     :return:
     '''
 
@@ -19,11 +33,50 @@ def convex_curve_shortening_flow(curve: np.ndarray):
     if curve.shape[1] != 2:
         raise ValueError('Curve must have the shape Nx2, i.e. N rows of 2D coordinates.')
 
-    curve = curve.astype(float)
+    if scaling_function_type == "sigmoid":
+        scaling_func = _scaling_functions.f_sigmoid(10, 0.1)
+    elif scaling_function_type == "elu":
+        scaling_func = _scaling_functions.f_elu(1, -0.1)
+    elif scaling_function_type == "softplus":
+        scaling_func = _scaling_functions.f_softplus(1, 0.1)
+    else:
+        scaling_func = _scaling_functions.f_sigmoid(10, 0.1)
+
+    max_iterations = 10000
+
+    n_vertices_init = curve.shape[0]
+    edge_length_init = _edge_length_euc(curve)
+    resampling_factor = n_vertices_init / edge_length_init
+
+    for i in range(max_iterations):
+
+        if _break_condition(curve):
+            break
+
+        if _resample_condition(curve):
+            curve = _gaussian_filter(_resample(curve, resampling_factor), resample_sigma)
+
+        curve = curve.astype(float)
+
+        step_vectors = step_size * _magnitude_array(curve)[:, None] * _vector_array(curve)
+
+        curve_new = curve + _gaussian_filter(step_vectors, step_sigma)
+
+        curve = curve_new
 
 
-def _curvature_magnitude_array(curve: np.ndarray):
-    pass
+def _magnitude_array(curve: np.ndarray):
+    # Magnitudes of iteration for each vertex.
+    # Calculated as a scaled version of the normalised curvature.
+
+    return _scale_curvature(_normalise_curvature(_curvature(curve)))
+
+
+def _vector_array(curve: np.ndarray):
+    # Vectors of iteration for each vertex.
+    # Calculated as parallel to the normal and facing inward.
+
+    return _inward_normal(curve)
 
 
 def _curvature(curve: np.ndarray):
@@ -64,7 +117,7 @@ def _normal(curve):
                 (np.roll(edge_length, -1, axis=0) + edge_length)[:, None])
 
 
-def inward_normal(curve):
+def _inward_normal(curve):
     # The inward normal is the normal pointing toward the interior of a closed curve.
     # It is the tangent vector rotated clockwise 90 degrees.
 
@@ -80,3 +133,20 @@ def _concavity(curve):
 def _break_condition(curve: np.ndarray):
     return _concavity(curve) < 0.1
 
+
+def _gaussian_filter(curve: np.ndarray, sigma: float):
+    return ndimage.gaussian_filter1d(curve, sigma, axis=0, mode='wrap')
+
+
+def _resample_condition(curve: np.ndarray):
+    return True
+
+
+def _resample(curve: np.ndarray, factor: float):
+    # Resample the vertices along the curve.
+    # Return the same curve but with n=int(factor * curve_length) equidistant vertices.
+
+    edge_length_current = _edge_length_euc(curve)
+    interp_func = interpolate.interp1d(edge_length_current.cumsum(), curve, axis=0)
+    return interp_func(np.linspace(edge_length_current[0], edge_length_current.sum() - edge_length_current[0],
+                                   int(factor * edge_length_current.sum())))
