@@ -55,8 +55,35 @@ class Test(TestCase):
 
         self.assertTrue(np.allclose(ImageCurve(input).curve(), output))
 
+    def test_imagecurve_starting_point(self):
+        input = np.zeros((5, 5), dtype=int)
+        input[1:-1, 1:-1] = 1
+        pad = (1, 1)
+
+        output = np.array([1, 1]) + pad
+
+        self.assertTrue(np.allclose(ImageCurve(input)._starting_point(), output))
+
+    def test_imagecurve_second_point(self):
+        input = np.zeros((5, 5), dtype=int)
+        input[1:-1, 1:-1] = 1
+        pad = (1, 1)
+
+        output = np.array([1, 2]) + pad
+
+        self.assertTrue(np.allclose(ImageCurve(input)._second_point(), output))
+
+    def test_imagecurve_last_point(self):
+        input = np.zeros((5, 5), dtype=int)
+        input[1:-1, 1:-1] = 1
+        pad = (1, 1)
+
+        output = np.array([2, 1]) + pad
+
+        self.assertTrue(np.allclose(ImageCurve(input)._last_point(), output))
+
     def test_imagecurve_curve_3_by_3_high(self):
-        input = np.ones((5, 5), dtype=int)
+        input = np.zeros((5, 5), dtype=int)
         input[1:-1, 1:-1] = 1
 
         output = np.array([[1, 1], [1, 2], [1, 3], [2, 3], [3, 3], [3, 2], [3, 1], [2, 1]])

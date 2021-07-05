@@ -41,9 +41,9 @@ class ImageCurve:
 
         if starting_neighbourhood[1, 2]:
             n = 0, 1
-        if starting_neighbourhood[2, 2]:
+        elif starting_neighbourhood[2, 2]:
             n = 1, 1
-        if starting_neighbourhood[2, 1]:
+        elif starting_neighbourhood[2, 1]:
             n = 1, 0
 
         return self._start + n
@@ -75,10 +75,10 @@ class ImageCurve:
         neighbourhood = self._neighbourhood(point)
         # [neighbours.append(point + n) for n in neighbour_array.side_neighbour_coordinates(neighbourhood)]
         # [neighbours.append(point + n) for n in neighbour_array.diagonal_neighbour_coordinates(neighbourhood)]
-        [neighbours.append(point + n) for n in _neighbour_array.side_neighbour_coordinates(neighbourhood) +
+        [neighbours.append(point + n) for n in _neighbour_array.side_neighbour_coordinates(neighbourhood) |
          _neighbour_array.diagonal_neighbour_coordinates(neighbourhood)]
 
-        neighbours = [n for n in neighbours if n not in self._visited]
+        neighbours = [n for n in neighbours if tuple(n) not in self._visited]
 
         return neighbours[0] if neighbours else None
 
@@ -101,12 +101,12 @@ class ImageCurve:
 
         curve = [self._start]
         self._visited = set()
-        self._visited.add(self._start)
-        self._visited.add(self._last_point())
+        self._visited.add(tuple(self._start))
+        self._visited.add(tuple(self._last_point()))
 
         curr = self._second_point()
-        while curr:
-            self._visited.add(curr)
+        while curr is not None:
+            self._visited.add(tuple(curr))
             curve.append(curr)
             curr = self._next_neighbour(curr)
         curve.append(self._last_point())

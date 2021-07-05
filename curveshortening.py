@@ -48,6 +48,8 @@ def convex_curve_shortening_flow(curve: np.ndarray,
     edge_length_init = _edge_length_euc(curve)
     resampling_factor = n_vertices_init / edge_length_init
 
+    curves = [curve]
+
     for i in range(max_iterations):
 
         if _break_condition(curve):
@@ -63,6 +65,10 @@ def convex_curve_shortening_flow(curve: np.ndarray,
         curve_new = curve + _gaussian_filter(step_vectors, step_sigma)
 
         curve = curve_new
+
+        curves.append(curve)
+
+    return curves
 
 
 def _magnitude_array(curve: np.ndarray):
@@ -99,17 +105,17 @@ def _scale_curvature(curvature: np.ndarray):
     return _scaling_functions.f_sigmoid(10, 0.1)(curvature)
 
 
-def _edge_length_euc(curve):
+def _edge_length_euc(curve: np.ndarray):
     # Euclidean distance between each neighbouring vertex.
 
     return np.linalg.norm(curve - np.roll(curve, 1, axis=0), axis=1)
 
 
-def _tangent(curve):
+def _tangent(curve: np.ndarray):
     return (curve - np.roll(curve, 1, axis=0)) / _edge_length_euc(curve)[:, None]
 
 
-def _normal(curve):
+def _normal(curve: np.ndarray):
     tangent = _tangent(curve)
     edge_length = _edge_length_euc(curve)
 
@@ -117,14 +123,14 @@ def _normal(curve):
                 (np.roll(edge_length, -1, axis=0) + edge_length)[:, None])
 
 
-def _inward_normal(curve):
+def _inward_normal(curve: np.ndarray):
     # The inward normal is the normal pointing toward the interior of a closed curve.
     # It is the tangent vector rotated clockwise 90 degrees.
 
     return _tangent(curve) @ np.array([[0, -1], [1, 0]])
 
 
-def _concavity(curve):
+def _concavity(curve: np.ndarray):
     curvature = _curvature(curve)
 
     return -sum(curvature[curvature < 0])
