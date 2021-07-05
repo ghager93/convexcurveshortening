@@ -3,16 +3,16 @@ import numpy as np
 import _neighbour_array
 
 
-class ImageCurve():
+class ImageCurve:
     def __init__(self, im: np.ndarray):
-        self._im = self._prepare_im()
+        self._prepare_im(im)
         self._im_curve = _edge_detect(self._im)
         self._visited = set()
         self._start = self._starting_point()
 
-    def _prepare_im(self):
+    def _prepare_im(self, im):
         # Flatten values such that image is binary.
-        self._im = np.where(self._im, 1, 0)
+        self._im = np.where(im, 1, 0)
 
         # If background (indicated by top-left pixel) is 1, invert image.
         self._im = self._im ^ self._im[0, 0]
@@ -23,6 +23,9 @@ class ImageCurve():
 
     def _starting_point(self):
         # List of vertices starts at the vertex with minimum index (most top-left corner vertex).
+
+        if not self._im.any():
+            return np.array([])
 
         return np.argwhere(self._im)[0]
 
@@ -93,6 +96,9 @@ class ImageCurve():
     def curve(self):
         #  Create list of vertices, starting at the top-leftmost vertex and traversing clockwise using DFS.
 
+        if not self._im.any():
+            return np.array([])
+
         curve = [self._start]
         self._visited = set()
         self._visited.add(self._start)
@@ -108,7 +114,7 @@ class ImageCurve():
         return self._unpad(np.array(curve))
 
 
-def _edge_detect(array: np.ndarray):
+def _edge_detect(array: np.ndarray) -> np.ndarray:
     # Binary edge detection.  Matrix is padded and XOR'd with the intersection of shifted versions of itself.
     # Shifts are north, east, south and west.
 

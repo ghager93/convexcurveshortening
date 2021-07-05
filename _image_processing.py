@@ -9,12 +9,18 @@ import _structuring_element
 
 
 def load_image(filename: str):
+    im = None
+
     try:
-        im = Image.open(filename).convert("1")
+        im = np.array(Image.open(filename).convert("1"))
     except FileNotFoundError:
         print("File does not exist.")
     except PIL.UnidentifiedImageError:
         print("Image format not supported.")
+    except:
+        print("Something went wrong.")
+
+    return im
 
 
 def smooth_image(image: np.ndarray, factor: int = 1):
