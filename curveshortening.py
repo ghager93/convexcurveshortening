@@ -152,7 +152,8 @@ def _resample(curve: np.ndarray, factor: float):
     # Resample the vertices along the curve.
     # Return the same curve but with n=int(factor * curve_length) equidistant vertices.
 
-    edge_length_current = _edge_length(curve)
-    interp_func = interpolate.interp1d(edge_length_current.cumsum(), curve, axis=0)
-    return interp_func(np.linspace(edge_length_current[0], edge_length_current.sum(),
-                                   int(factor * edge_length_current.sum())))
+    current_lengths = _edge_length(curve)
+    interp_func = interpolate.interp1d(current_lengths.cumsum()-current_lengths[0], curve, axis=0)
+    new_lengths = np.linspace(0, current_lengths.sum())
+    return interp_func(np.linspace(current_lengths[0], current_lengths.sum(),
+                                   int(factor * current_lengths.sum())))
