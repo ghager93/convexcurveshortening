@@ -45,7 +45,7 @@ def convex_curve_shortening_flow(curve: np.ndarray,
     max_iterations = 10000
 
     n_vertices_init = curve.shape[0]
-    edge_length_init = _edge_length_euc(curve)
+    edge_length_init = _edge_length(curve)
     resampling_factor = n_vertices_init / edge_length_init
 
     curves = [curve]
@@ -105,19 +105,19 @@ def _scale_curvature(curvature: np.ndarray):
     return _scaling_functions.f_sigmoid(10, 0.1)(curvature)
 
 
-def _edge_length_euc(curve: np.ndarray):
+def _edge_length(curve: np.ndarray):
     # Euclidean distance between each neighbouring vertex.
 
     return np.linalg.norm(curve - np.roll(curve, 1, axis=0), axis=1)
 
 
 def _tangent(curve: np.ndarray):
-    return (curve - np.roll(curve, 1, axis=0)) / _edge_length_euc(curve)[:, None]
+    return (curve - np.roll(curve, 1, axis=0)) / _edge_length(curve)[:, None]
 
 
 def _normal(curve: np.ndarray):
     tangent = _tangent(curve)
-    edge_length = _edge_length_euc(curve)
+    edge_length = _edge_length(curve)
 
     return 2 * ((np.roll(tangent, -1, axis=0) - tangent) /
                 (np.roll(edge_length, -1, axis=0) + edge_length)[:, None])
@@ -152,7 +152,7 @@ def _resample(curve: np.ndarray, factor: float):
     # Resample the vertices along the curve.
     # Return the same curve but with n=int(factor * curve_length) equidistant vertices.
 
-    edge_length_current = _edge_length_euc(curve)
+    edge_length_current = _edge_length(curve)
     interp_func = interpolate.interp1d(edge_length_current.cumsum(), curve, axis=0)
     return interp_func(np.linspace(edge_length_current[0], edge_length_current.sum() - edge_length_current[0],
                                    int(factor * edge_length_current.sum())))
