@@ -70,7 +70,9 @@ class Test(TestCase):
 
         self.assertTrue(len(_resample(input, 0)) == 0)
 
-    def test__resample_factor_equals_1(self):
-        input = np.load(self.test_file_curve)
+    def test__resample_returns_input_with_no_change(self):
+        input = np.array([[0, 0], [0, 2], [2, 2], [2, 0]])
+        factor = 4 / 8
 
-        self.assertTrue(np.allclose(_resample(input, 1), input))
+        print(_resample(input, factor))
+        self.assertTrue(np.allclose(_resample(input, factor), input))

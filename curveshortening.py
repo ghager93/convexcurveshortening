@@ -154,5 +154,5 @@ def _resample(curve: np.ndarray, factor: float):
 
     edge_length_current = _edge_length(curve)
     interp_func = interpolate.interp1d(edge_length_current.cumsum(), curve, axis=0)
-    return interp_func(np.linspace(edge_length_current[0], edge_length_current.sum() - edge_length_current[0],
+    return interp_func(np.linspace(edge_length_current[0], edge_length_current.sum(),
                                    int(factor * edge_length_current.sum())))
