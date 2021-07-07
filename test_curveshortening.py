@@ -3,7 +3,7 @@ import numpy as np
 
 from unittest import TestCase
 
-from curveshortening import _resample, _edge_length
+import curveshortening
 
 
 class Test(TestCase):
@@ -33,22 +33,35 @@ class Test(TestCase):
         input = np.array([[0, 0], [0, 1], [1, 1], [1, 0]])
         output = np.array([1, 1, 1, 1])
 
-        self.assertTrue(np.allclose(_edge_length(input), output))
+        self.assertTrue(np.allclose(curveshortening._edge_length(input), output))
 
     def test__edge_length_four_point_spiral(self):
         input = np.array([[0, 0], [0, 1], [1, 2], [2, -1]])
         output = np.array([np.sqrt(5), 1, np.sqrt(2), np.sqrt(10)])
 
-        self.assertTrue(np.allclose(_edge_length(input), output))
+        self.assertTrue(np.allclose(curveshortening._edge_length(input), output))
 
-    def test__tangent(self):
-        self.fail()
+    def test__tangent_four_point_square(self):
+        input = np.array([[0, 0], [0, 1], [1, 1], [1, 0]])
+        output = np.array([[-1, 0], [0, 1], [1, 0], [0, -1]])
 
-    def test__normal(self):
-        self.fail()
+        self.assertTrue(np.allclose(curveshortening._tangent(input), output))
 
-    def test__inward_normal(self):
-        self.fail()
+    def test__normal_L_shape(self):
+        input = np.array([[0, 0], [0, 1/2], [0, 1], [1/2, 1], [1, 1], [1, 3/2],
+                          [1, 2], [3/2, 2], [2, 2], [2, 1], [2, 0], [1, 0]])
+        output = np.array([[4/3, 4/3], [0, 0], [2, -2], [0, 0], [-2, 2], [0, 0], [2, -2],
+                           [0, 0], [-4/3, -4/3], [0, 0], [-1, 1], [0, 0]])
+
+        self.assertTrue(np.allclose(curveshortening._normal(input), output))
+
+    def test__inward_normal_L_shape(self):
+        input = np.array([[0, 0], [0, 1/2], [0, 1], [1/2, 1], [1, 1], [1, 3/2],
+                          [1, 2], [3/2, 2], [2, 2], [2, 1], [2, 0], [1, 0]])
+        output = np.array([[0, 1], [1, 0], [1, 0], [0, -1], [0, -1], [1, 0], [1, 0],
+                           [0, -1], [0, -1], [-1, 0], [-1, 0], [0, 1]])
+
+        self.assertTrue(np.allclose(curveshortening._inward_normal(input), output))
 
     def test__concavity(self):
         self.fail()
@@ -63,16 +76,16 @@ class Test(TestCase):
         input = np.load(self.test_file_curve)
         output = np.load(self.test_file_curve_downsample)
 
-        self.assertTrue(np.allclose(_resample(input, 1/100), output))
+        self.assertTrue(np.allclose(curveshortening._resample(input, 1/100), output))
 
     def test__resample_factor_equals_0(self):
         input = np.load(self.test_file_curve)
 
-        self.assertTrue(len(_resample(input, 0)) == 0)
+        self.assertTrue(len(curveshortening._resample(input, 0)) == 0)
 
     def test__resample_returns_input_with_no_change(self):
         input = np.array([[0, 0], [0, 2], [2, 2], [2, 0]])
         factor = 4 / 8
 
-        print(_resample(input, factor))
-        self.assertTrue(np.allclose(_resample(input, factor), input))
+        print(curveshortening._resample(input, factor))
+        self.assertTrue(np.allclose(curveshortening._resample(input, factor), input))

@@ -112,15 +112,19 @@ def _edge_length(curve: np.ndarray):
 
 
 def _tangent(curve: np.ndarray):
-    return (curve - np.roll(curve, 1, axis=0)) / _edge_length(curve)[:, None]
+    edge = _edge_length(curve)
+    edge[edge == 0] = 10e-5
+
+    return (curve - np.roll(curve, 1, axis=0)) / edge[:, None]
 
 
 def _normal(curve: np.ndarray):
     tangent = _tangent(curve)
-    edge_length = _edge_length(curve)
+    edge = _edge_length(curve)
+    second_diff_edge = np.roll(edge, -1, axis=0) + edge
+    second_diff_edge[second_diff_edge == 0] = 10e-5
 
-    return 2 * ((np.roll(tangent, -1, axis=0) - tangent) /
-                (np.roll(edge_length, -1, axis=0) + edge_length)[:, None])
+    return 2 * (np.roll(tangent, -1, axis=0) - tangent) / second_diff_edge[:, None]
 
 
 def _inward_normal(curve: np.ndarray):
@@ -157,3 +161,5 @@ def _resample(curve: np.ndarray, factor: float):
     new_lengths = np.linspace(0, current_lengths.sum())
     return interp_func(np.linspace(current_lengths[0], current_lengths.sum(),
                                    int(factor * current_lengths.sum())))
+
+
