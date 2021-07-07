@@ -46,7 +46,7 @@ def convex_curve_shortening_flow(curve: np.ndarray,
 
     n_vertices_init = curve.shape[0]
     edge_length_init = _edge_length(curve)
-    resampling_factor = n_vertices_init / edge_length_init
+    resampling_factor = n_vertices_init / edge_length_init.sum()
 
     curves = [curve]
 
