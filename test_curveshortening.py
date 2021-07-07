@@ -87,5 +87,4 @@ class Test(TestCase):
         input = np.array([[0, 0], [0, 2], [2, 2], [2, 0]])
         factor = 4 / 8
 
-        print(curveshortening._resample(input, factor))
         self.assertTrue(np.allclose(curveshortening._resample(input, factor), input))

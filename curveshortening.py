@@ -157,9 +157,13 @@ def _resample(curve: np.ndarray, factor: float):
     # Return the same curve but with n=int(factor * curve_length) equidistant vertices.
 
     current_lengths = _edge_length(curve)
-    interp_func = interpolate.interp1d(current_lengths.cumsum()-current_lengths[0], curve, axis=0)
-    new_lengths = np.linspace(0, current_lengths.sum())
-    return interp_func(np.linspace(current_lengths[0], current_lengths.sum(),
-                                   int(factor * current_lengths.sum())))
+    curve_looped = np.vstack((curve, curve[0]))
+    cumulative_lengths_zero_start = np.hstack((0, current_lengths.cumsum()))
+    total_length = cumulative_lengths_zero_start[-1]
+
+    interp_func = interpolate.interp1d(cumulative_lengths_zero_start, curve_looped, axis=0)
+    new_lengths = np.linspace(0, total_length, int(factor * total_length), endpoint=False)
+
+    return interp_func(new_lengths)
 
 
