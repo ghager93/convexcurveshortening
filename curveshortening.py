@@ -71,6 +71,62 @@ def convex_curve_shortening_flow(curve: np.ndarray,
     return curves
 
 
+def curve_shortening_flow(curve: np.ndarray,
+                                 step_size: float = 1,
+                                 step_sigma: float = 10,
+                                 resample_sigma: float = 1,
+                                 scaling_function_type: str = "sigmoid",
+                                 scaling_function_alpha: float = None,
+                                 scaling_function_a: float = None):
+    '''
+    Convex curve shortening.
+
+    :param scaling_function: Function type used for scaling the curvature magnitude vector.
+    :param resample_sigma: Standard deviation for the Gaussian filter used during resampling.
+    :param step_sigma: Standard deviation for the Gaussian filter used on the step vector.
+    :param curve: Nx2 Numpy array, where N is the number of vertices in the curve.
+    :param step_size: Scales magnitude of each iteration.
+    :return:
+    '''
+
+    if type(curve) is not np.ndarray or curve.ndim != 2:
+        raise ValueError('Curve must be 2-D Numpy array.')
+
+    if curve.shape[0] < 3:
+        raise ValueError('Curve must have at least 3 vertices.')
+
+    if curve.shape[1] != 2:
+        raise ValueError('Curve must have the shape Nx2, i.e. N rows of 2D coordinates.')
+
+    max_iterations = 10000
+
+    n_vertices_init = curve.shape[0]
+    edge_length_init = _edge_length(curve)
+    resampling_factor = n_vertices_init / edge_length_init.sum()
+
+    curves = [curve]
+
+    for i in range(max_iterations):
+
+        if _break_condition_convex(curve):
+            break
+
+        if _resample_condition(curve):
+            curve = _gaussian_filter(_resample(curve, resampling_factor), resample_sigma)
+
+        curve = curve.astype(float)
+
+        step_vectors = step_size * _magnitude_array(curve)[:, None] * _vector_array(curve)
+
+        curve_new = _gaussian_filter(curve, step_sigma)
+
+        curve = curve_new
+
+        curves.append(curve)
+
+    return curves
+
+
 def _magnitude_array(curve: np.ndarray):
     # Magnitudes of iteration for each vertex.
     # Calculated as a scaled version of the normalised curvature.
@@ -143,6 +199,10 @@ def _concavity(curve: np.ndarray):
 
 def _break_condition(curve: np.ndarray):
     return _concavity(curve) < 0.1
+
+
+def _break_condition_convex(curve):
+    return curve.shape[0] < 4
 
 
 def _gaussian_filter(curve: np.ndarray, sigma: float):

@@ -30,6 +30,13 @@ class Test(TestCase):
 
         self.assertTrue(np.allclose(curveshortening._curvature(input)[1:-1], output[1:-1], atol=1.e-3, rtol=1.e-1))
 
+    def test_curvature_straight_line(self):
+        input = np.array([np.arange(10), np.arange(10)]).transpose()
+
+        output = np.zeros(10)
+
+        self.assertTrue(np.allclose(curveshortening._curvature(input)[1:-1], output[1:-1]))
+
     def test__normalise_curvature(self):
         self.fail()
 
