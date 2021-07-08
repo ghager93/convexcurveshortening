@@ -86,9 +86,9 @@ def _vector_array(curve: np.ndarray):
 
 
 def _curvature(curve: np.ndarray):
-    # Curvature is the cross-product of the normal and the tangent.
-    # k = t x n
-    #   = x'y" - x"y'
+    # Curvature is the cross-product of the normal and the tangent, divided by a normalising factor.
+    # k = t x n / ||t||**3
+    #   = x'y" - x"y' / (x'**2 + y'**2)**(3/2)
 
     tangent = _tangent(curve)
     normal = _normal(curve)
@@ -98,6 +98,7 @@ def _curvature(curve: np.ndarray):
 
 
 def _normalise_curvature(curvature: np.ndarray):
+    # Restrict curvature to between [-1, 1]
     return curvature / np.max(abs(curvature))
 
 

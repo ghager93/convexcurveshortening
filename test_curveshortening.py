@@ -20,8 +20,15 @@ class Test(TestCase):
     def test__vector_array(self):
         self.fail()
 
-    def test__curvature(self):
-        self.fail()
+    def test__curvature_parabola_y_equals_x_squared(self):
+        inputx = np.linspace(-4, 4, 100)
+        inputy = inputx**2
+
+        input = np.vstack((inputy, inputx)).transpose()
+
+        output = 2 / (4*inputx**2 + 1)**(3/2)
+
+        self.assertTrue(np.allclose(curveshortening._curvature(input)[1:-1], output[1:-1], atol=1.e-3, rtol=1.e-1))
 
     def test__normalise_curvature(self):
         self.fail()
