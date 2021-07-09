@@ -71,21 +71,12 @@ def convex_curve_shortening_flow(curve: np.ndarray,
     return curves
 
 
-def curve_shortening_flow(curve: np.ndarray,
-                                 step_size: float = 1,
-                                 step_sigma: float = 10,
-                                 resample_sigma: float = 1,
-                                 scaling_function_type: str = "sigmoid",
-                                 scaling_function_alpha: float = None,
-                                 scaling_function_a: float = None):
+def curve_shortening_flow(curve: np.ndarray, n_curves: int):
     '''
-    Convex curve shortening.
+    Curve shortening flow.
 
-    :param scaling_function: Function type used for scaling the curvature magnitude vector.
-    :param resample_sigma: Standard deviation for the Gaussian filter used during resampling.
-    :param step_sigma: Standard deviation for the Gaussian filter used on the step vector.
     :param curve: Nx2 Numpy array, where N is the number of vertices in the curve.
-    :param step_size: Scales magnitude of each iteration.
+    :param n_curves: Number of curve iterations between the original and singularity.
     :return:
     '''
 
@@ -98,33 +89,31 @@ def curve_shortening_flow(curve: np.ndarray,
     if curve.shape[1] != 2:
         raise ValueError('Curve must have the shape Nx2, i.e. N rows of 2D coordinates.')
 
-    max_iterations = 10000
+    n_vertices = curve.shape[0]
+    linear_stds = _linear_step_stds(n_vertices, n_curves)
 
-    n_vertices_init = curve.shape[0]
-    edge_length_init = _edge_length(curve)
-    resampling_factor = n_vertices_init / edge_length_init.sum()
-
-    curves = [curve]
-
-    for i in range(max_iterations):
-
-        if _break_condition_convex(curve):
-            break
-
-        if _resample_condition(curve):
-            curve = _gaussian_filter(_resample(curve, resampling_factor), resample_sigma)
-
-        curve = curve.astype(float)
-
-        step_vectors = step_size * _magnitude_array(curve)[:, None] * _vector_array(curve)
-
-        curve_new = _gaussian_filter(curve, step_sigma)
-
-        curve = curve_new
-
-        curves.append(curve)
+    curves = [_mokhtarian_mackworth92(curve, sigma) for sigma in linear_stds]
 
     return curves
+
+
+def _linear_step_stds(n_vertices: int, n_curves: int):
+    # Array of n_curve stds that will create linearly spaced curves.
+    # Curve shortening flow algorithm found to closely match scaled normal distribution;
+    # N(x; \sigma) = n_vertices \exp(-x^2 / 2\sigma^2),    \sigma = pi/20, x > 0
+
+    sigma2 = (np.pi/20)**2
+    return np.sqrt(2*sigma2*np.log(n_vertices / np.linspace(1, 0.01, n_curves)[::-1]))
+
+
+def _mokhtarian_mackworth92(curve, sigma):
+    # Mokhtarian, Farzin & Mackworth, Alan. (1992).
+    # A Theory of Multiscale, Curvature-Based Shape Representation for Planar Curves.
+    # Pattern Analysis and Machine Intelligence, IEEE Transactions on. 14. 789-805. 10.1109/34.149591.
+
+    # Apply Gaussian filter, followed by resampling.
+
+    return _resample(_gaussian_filter(curve, sigma), 1 / _edge_length(curve).mean())
 
 
 def _magnitude_array(curve: np.ndarray):
