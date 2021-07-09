@@ -90,20 +90,25 @@ def curve_shortening_flow(curve: np.ndarray, n_curves: int):
         raise ValueError('Curve must have the shape Nx2, i.e. N rows of 2D coordinates.')
 
     n_vertices = curve.shape[0]
-    linear_stds = _linear_step_stds(n_vertices, n_curves)
+    linear_stds = _linear_step_stds(curve, n_curves)
 
     curves = [_mokhtarian_mackworth92(curve, sigma) for sigma in linear_stds]
 
     return curves
 
 
-def _linear_step_stds(n_vertices: int, n_curves: int):
+def _linear_step_stds(curve: np.ndarray, n_curves: int):
     # Array of n_curve stds that will create linearly spaced curves.
     # Curve shortening flow algorithm found to closely match scaled normal distribution;
     # N(x; \sigma) = n_vertices \exp(-x^2 / 2\sigma^2),    \sigma = pi/20, x > 0
 
     sigma2 = (np.pi/20)**2
-    return np.sqrt(2*sigma2*np.log(n_vertices / np.linspace(1, 0.01, n_curves)[::-1]))
+    average_radius = _average_radius(curve)
+    return curve.shape[0] * np.sqrt(2*sigma2*np.log(average_radius / np.linspace(average_radius, 0.01, n_curves)))
+
+
+def _average_radius(curve: np.ndarray):
+    return np.linalg.norm(curve-curve.mean(axis=0), axis=1).mean()
 
 
 def _mokhtarian_mackworth92(curve, sigma):
@@ -113,7 +118,8 @@ def _mokhtarian_mackworth92(curve, sigma):
 
     # Apply Gaussian filter, followed by resampling.
 
-    return _resample(_gaussian_filter(curve, sigma), 1 / _edge_length(curve).mean())
+    # return _resample(_gaussian_filter(curve, sigma), 1 / _edge_length(curve).mean())
+    return _gaussian_filter(curve, sigma)
 
 
 def _magnitude_array(curve: np.ndarray):
