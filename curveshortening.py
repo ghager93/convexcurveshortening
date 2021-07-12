@@ -2,11 +2,13 @@ import numpy as np
 
 from scipy import ndimage
 from scipy import interpolate
+from typing import List
 
 import _scaling_functions
 
 
 def convex_curve_shortening_flow(curve: np.ndarray,
+                                 precision: int = 100,
                                  step_size: float = 1,
                                  step_sigma: float = 10,
                                  resample_sigma: float = 1,
@@ -68,7 +70,12 @@ def convex_curve_shortening_flow(curve: np.ndarray,
 
         curves.append(curve)
 
-    return curves
+    concave_curves = _reduce_concave_iterations_to_precision(curves, precision)
+
+    convex_curves = curve_shortening_flow(concave_curves[-1], precision - len(concave_curves))
+
+
+    return concave_curves + convex_curves
 
 
 def curve_shortening_flow(curve: np.ndarray, n_curves: int):
@@ -163,6 +170,10 @@ def _edge_length(curve: np.ndarray):
     return np.linalg.norm(curve - np.roll(curve, 1, axis=0), axis=1)
 
 
+def _total_edge_length(curve: np.ndarray):
+    return _edge_length(curve).sum()
+
+
 def _tangent(curve: np.ndarray):
     edge = _edge_length(curve)
     edge[edge == 0] = 10e-5
@@ -223,3 +234,24 @@ def _resample(curve: np.ndarray, factor: float):
     return interp_func(new_lengths)
 
 
+def _mean_distance_to_centre_of_mass(curve: np.ndarray):
+    # Metric for determining number of iterations to singularity.
+    # d = 1/|curve| * sum_s(||curve(s) - 1/|curve| * sum_s'(curve(s')) ||)
+
+    return np.linalg.norm(curve-curve.mean(axis=0), axis=1).mean()
+
+
+def _reduce_concave_iterations_to_precision(curves: List, precision: int):
+    return _reduce_to_roughly_equal_curves(curves, precision)
+
+
+def _reduce_to_roughly_equal_curves(curves: List, precision: int):
+    # Reduces number of concave curve iterations in list to be proportional to desired precision.
+    # Includes the first and last curves.
+    # Proportion of total iterations that are concave is determined as one minus the ratio of the length of the last concave
+    # curve to the length of the first.
+    # Thus, the number of returned curves is floor(precision * (1 - curves[-1] / curves[0])).
+
+    n_curves = np.floor(precision * (1 - _total_edge_length(curves[-1]) / _total_edge_length(curves[0])))
+
+    return curves[np.round(np.linspace(0, len(curves) - 1, n_curves)).astype(int)]
