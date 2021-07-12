@@ -74,7 +74,6 @@ def convex_curve_shortening_flow(curve: np.ndarray,
 
     convex_curves = curve_shortening_flow(concave_curves[-1], precision - len(concave_curves))
 
-
     return concave_curves + convex_curves
 
 
