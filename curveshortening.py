@@ -5,6 +5,8 @@ from scipy import interpolate
 from typing import List
 
 import _scaling_functions
+from _metrics import _average_radius, _curvature, _normalise_curvature, _total_edge_length, _concavity
+from _vector_maths import inward_normal, edge_length
 
 
 def convex_curve_shortening_flow(curve: np.ndarray,
@@ -47,7 +49,7 @@ def convex_curve_shortening_flow(curve: np.ndarray,
     max_iterations = 10000
 
     n_vertices_init = curve.shape[0]
-    edge_length_init = _edge_length(curve)
+    edge_length_init = edge_length(curve)
     resampling_factor = n_vertices_init / edge_length_init.sum()
 
     curves = [curve]
@@ -118,10 +120,6 @@ def _linear_step_stds(curve: np.ndarray, n_curves: int, startpoint=True):
     return curve.shape[0] * np.sqrt(2 * sigma2 * np.log(average_radius / linear_steps))
 
 
-def _average_radius(curve: np.ndarray):
-    return np.linalg.norm(curve-curve.mean(axis=0), axis=1).mean()
-
-
 def _mokhtarian_mackworth92(curve, sigma):
     # Mokhtarian, Farzin & Mackworth, Alan. (1992).
     # A Theory of Multiscale, Curvature-Based Shape Representation for Planar Curves.
@@ -144,67 +142,11 @@ def _vector_array(curve: np.ndarray):
     # Vectors of iteration for each vertex.
     # Calculated as parallel to the normal and facing inward.
 
-    return _inward_normal(curve)
-
-
-def _curvature(curve: np.ndarray):
-    # Curvature is the cross-product of the normal and the tangent, divided by a normalising factor.
-    # k = t x n / ||t||**3
-    #   = x'y" - x"y' / (x'**2 + y'**2)**(3/2)
-
-    tangent = _tangent(curve)
-    normal = _normal(curve)
-
-    return ((tangent[:, 1] * normal[:, 0] - normal[:, 1] * tangent[:, 0])
-            / ((tangent[:, 1] ** 2 + tangent[:, 0] ** 2) ** (3 / 2)))
-
-
-def _normalise_curvature(curvature: np.ndarray):
-    # Restrict curvature to between [-1, 1]
-    return curvature / np.max(abs(curvature))
+    return inward_normal(curve)
 
 
 def _scale_curvature(curvature: np.ndarray):
     return _scaling_functions.f_sigmoid(10, 0.1)(curvature)
-
-
-def _edge_length(curve: np.ndarray):
-    # Euclidean distance between each neighbouring vertex.
-
-    return np.linalg.norm(curve - np.roll(curve, 1, axis=0), axis=1)
-
-
-def _total_edge_length(curve: np.ndarray):
-    return _edge_length(curve).sum()
-
-
-def _tangent(curve: np.ndarray):
-    edge = _edge_length(curve)
-    edge[edge == 0] = 10e-5
-
-    return (curve - np.roll(curve, 1, axis=0)) / edge[:, None]
-
-
-def _normal(curve: np.ndarray):
-    tangent = _tangent(curve)
-    edge = _edge_length(curve)
-    second_diff_edge = np.roll(edge, -1, axis=0) + edge
-    second_diff_edge[second_diff_edge == 0] = 10e-5
-
-    return 2 * (np.roll(tangent, -1, axis=0) - tangent) / second_diff_edge[:, None]
-
-
-def _inward_normal(curve: np.ndarray):
-    # The inward normal is the normal pointing toward the interior of a closed curve.
-    # It is the tangent vector rotated clockwise 90 degrees.
-
-    return _tangent(curve) @ np.array([[0, -1], [1, 0]])
-
-
-def _concavity(curve: np.ndarray):
-    curvature = _curvature(curve)
-
-    return -sum(curvature[curvature < 0])
 
 
 def _break_condition(curve: np.ndarray):
@@ -227,7 +169,7 @@ def _resample(curve: np.ndarray, factor: float):
     # Resample the vertices along the curve.
     # Return the same curve but with n=int(factor * curve_length) equidistant vertices.
 
-    current_lengths = _edge_length(curve)
+    current_lengths = edge_length(curve)
     curve_looped = np.vstack((curve, curve[0]))
     cumulative_lengths_zero_start = np.hstack((0, current_lengths.cumsum()))
     total_length = cumulative_lengths_zero_start[-1]
