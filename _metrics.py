@@ -1,4 +1,5 @@
 import numpy as np
+import skgeom
 
 import _vector_maths
 
@@ -34,3 +35,10 @@ def concavity(curve: np.ndarray):
     curvature_ = curvature(curve)
 
     return -sum(curvature_[curvature_ < 0])
+
+
+def enclosed_area(curve: np.ndarray):
+    # scikit-geometry calculates the area of clockwise curves as negative and counter-clockwise as positive.
+    # Since only simple curves are considered, the absolute value is returned to avoid ambiguity.
+
+    return abs(float(skgeom.Polygon(curve).area()))
