@@ -5,8 +5,8 @@ from scipy import interpolate
 from typing import List
 
 import _scaling_functions
-from _metrics import _average_radius, _curvature, _normalise_curvature, _total_edge_length, _concavity
-from _vector_maths import inward_normal, edge_length
+import _metrics
+import _vector_maths
 
 
 def convex_curve_shortening_flow(curve: np.ndarray,
@@ -49,7 +49,7 @@ def convex_curve_shortening_flow(curve: np.ndarray,
     max_iterations = 10000
 
     n_vertices_init = curve.shape[0]
-    edge_length_init = edge_length(curve)
+    edge_length_init = _vector_maths.edge_length(curve)
     resampling_factor = n_vertices_init / edge_length_init.sum()
 
     curves = [curve]
@@ -111,7 +111,7 @@ def _linear_step_stds(curve: np.ndarray, n_curves: int, startpoint=True):
     # N(x; \sigma) = n_vertices \exp(-x^2 / 2\sigma^2),    \sigma = pi/20, x > 0
 
     sigma2 = (np.pi/20)**2
-    average_radius = _average_radius(curve)
+    average_radius = _metrics.average_radius(curve)
 
     if startpoint:
         linear_steps = np.linspace(average_radius, 0, n_curves, endpoint=False)
@@ -135,14 +135,14 @@ def _magnitude_array(curve: np.ndarray):
     # Magnitudes of iteration for each vertex.
     # Calculated as a scaled version of the normalised curvature.
 
-    return _scale_curvature(_normalise_curvature(_curvature(curve)))
+    return _scale_curvature(_metrics.normalised_curvature(curve))
 
 
 def _vector_array(curve: np.ndarray):
     # Vectors of iteration for each vertex.
     # Calculated as parallel to the normal and facing inward.
 
-    return inward_normal(curve)
+    return _vector_maths.inward_normal(curve)
 
 
 def _scale_curvature(curvature: np.ndarray):
@@ -150,7 +150,7 @@ def _scale_curvature(curvature: np.ndarray):
 
 
 def _break_condition(curve: np.ndarray):
-    return _concavity(curve) < 0.1
+    return _metrics.concavity(curve) < 0.1
 
 
 def _break_condition_convex(curve):
@@ -169,7 +169,7 @@ def _resample(curve: np.ndarray, factor: float):
     # Resample the vertices along the curve.
     # Return the same curve but with n=int(factor * curve_length) equidistant vertices.
 
-    current_lengths = edge_length(curve)
+    current_lengths = _vector_maths.edge_length(curve)
     curve_looped = np.vstack((curve, curve[0]))
     cumulative_lengths_zero_start = np.hstack((0, current_lengths.cumsum()))
     total_length = cumulative_lengths_zero_start[-1]
@@ -194,10 +194,12 @@ def _reduce_concave_iterations_to_precision(curves: List, precision: int):
 def _reduce_to_roughly_equal_curves(curves: List, precision: int):
     # Reduces number of concave curve iterations in list to be proportional to desired precision.
     # Includes the first and last curves.
-    # Proportion of total iterations that are concave is determined as one minus the ratio of the length of the last concave
-    # curve to the length of the first.
+    # Proportion of total iterations that are concave is determined as one minus the ratio
+    # of the length of the last concave curve to the length of the first.
     # Thus, the number of returned curves is floor(precision * (1 - curves[-1] / curves[0])).
 
-    n_curves = np.floor(precision * (1 - _total_edge_length(curves[-1]) / _total_edge_length(curves[0]))).astype(int)
+    n_curves = np.floor(precision *
+                        (1 - _metrics.total_edge_length(curves[-1]) / _metrics.total_edge_length(curves[0]))
+                        ).astype(int)
 
     return [curves[i] for i in np.round(np.linspace(0, len(curves) - 1, n_curves)).astype(int)]

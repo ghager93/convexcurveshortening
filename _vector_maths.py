@@ -9,12 +9,12 @@ def tangent(curve: np.ndarray):
 
 
 def normal(curve: np.ndarray):
-    tangent = tangent(curve)
+    tangent_ = tangent(curve)
     edge = edge_length(curve)
     second_diff_edge = np.roll(edge, -1, axis=0) + edge
     second_diff_edge[second_diff_edge == 0] = 10e-5
 
-    return 2 * (np.roll(tangent, -1, axis=0) - tangent) / second_diff_edge[:, None]
+    return 2 * (np.roll(tangent_, -1, axis=0) - tangent_) / second_diff_edge[:, None]
 
 
 def inward_normal(curve: np.ndarray):
