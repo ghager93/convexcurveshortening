@@ -77,7 +77,7 @@ def convex_curve_shortening_flow(curve: np.ndarray,
     return concave_curves + convex_curves
 
 
-def curve_shortening_flow(curve: np.ndarray, n_curves: int):
+def curve_shortening_flow(curve: np.ndarray, n_curves: int, return_initial_curve=False):
     '''
     Curve shortening flow.
 
@@ -96,21 +96,26 @@ def curve_shortening_flow(curve: np.ndarray, n_curves: int):
         raise ValueError('Curve must have the shape Nx2, i.e. N rows of 2D coordinates.')
 
     n_vertices = curve.shape[0]
-    linear_stds = _linear_step_stds(curve, n_curves)
+    linear_stds = _linear_step_stds(curve, n_curves, startpoint=return_initial_curve)
 
     curves = [_mokhtarian_mackworth92(curve, sigma) for sigma in linear_stds]
 
     return curves
 
 
-def _linear_step_stds(curve: np.ndarray, n_curves: int):
+def _linear_step_stds(curve: np.ndarray, n_curves: int, startpoint=True):
     # Array of n_curve stds that will create linearly spaced curves.
     # Curve shortening flow algorithm found to closely match scaled normal distribution;
     # N(x; \sigma) = n_vertices \exp(-x^2 / 2\sigma^2),    \sigma = pi/20, x > 0
 
     sigma2 = (np.pi/20)**2
     average_radius = _average_radius(curve)
-    return curve.shape[0] * np.sqrt(2*sigma2*np.log(average_radius / np.linspace(average_radius, 0.01, n_curves)))
+
+    if startpoint:
+        linear_steps = np.linspace(average_radius, 0, n_curves, endpoint=False)
+    else:
+        linear_steps = np.linspace(average_radius, 0, n_curves + 1, endpoint=False)[1:]
+    return curve.shape[0] * np.sqrt(2 * sigma2 * np.log(average_radius / linear_steps))
 
 
 def _average_radius(curve: np.ndarray):
@@ -251,6 +256,6 @@ def _reduce_to_roughly_equal_curves(curves: List, precision: int):
     # curve to the length of the first.
     # Thus, the number of returned curves is floor(precision * (1 - curves[-1] / curves[0])).
 
-    n_curves = np.floor(precision * (1 - _total_edge_length(curves[-1]) / _total_edge_length(curves[0])))
+    n_curves = np.floor(precision * (1 - _total_edge_length(curves[-1]) / _total_edge_length(curves[0]))).astype(int)
 
-    return curves[np.round(np.linspace(0, len(curves) - 1, n_curves)).astype(int)]
+    return [curves[i] for i in np.round(np.linspace(0, len(curves) - 1, n_curves)).astype(int)]
