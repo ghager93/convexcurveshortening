@@ -4,6 +4,7 @@ import numpy as np
 from unittest import TestCase
 
 import _metrics
+import _utils
 import _vector_maths
 import curveshortening
 
@@ -92,15 +93,15 @@ class Test(TestCase):
         input = np.load(self.test_file_curve)
         output = np.load(self.test_file_curve_downsample)
 
-        self.assertTrue(np.allclose(curveshortening._resample(input, 1/100), output))
+        self.assertTrue(np.allclose(_utils._resample(input, 1 / 100), output))
 
     def test__resample_factor_equals_0(self):
         input = np.load(self.test_file_curve)
 
-        self.assertTrue(len(curveshortening._resample(input, 0)) == 0)
+        self.assertTrue(len(_utils._resample(input, 0)) == 0)
 
     def test__resample_returns_input_with_no_change(self):
         input = np.array([[0, 0], [0, 2], [2, 2], [2, 0]])
         factor = 4 / 8
 
-        self.assertTrue(np.allclose(curveshortening._resample(input, factor), input))
+        self.assertTrue(np.allclose(_utils._resample(input, factor), input))

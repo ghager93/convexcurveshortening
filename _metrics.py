@@ -42,3 +42,10 @@ def enclosed_area(curve: np.ndarray):
     # Since only simple curves are considered, the absolute value is returned to avoid ambiguity.
 
     return abs(float(skgeom.Polygon(curve).area()))
+
+
+def mean_distance_to_centre_of_mass(curve: np.ndarray):
+    # Metric for determining number of iterations to singularity.
+    # d = 1/|curve| * sum_s(||curve(s) - 1/|curve| * sum_s'(curve(s')) ||)
+
+    return np.linalg.norm(curve-curve.mean(axis=0), axis=1).mean()

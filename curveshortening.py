@@ -1,24 +1,23 @@
 import numpy as np
 
-from scipy import ndimage
-from scipy import interpolate
 from typing import List
 
 import _scaling_functions
 import _metrics
 import _vector_maths
+import _utils
 
 
-def convex_curve_shortening_flow(curve: np.ndarray,
-                                 precision: int = 100,
-                                 step_size: float = 1,
-                                 step_sigma: float = 10,
-                                 resample_sigma: float = 1,
-                                 scaling_function_type: str = "sigmoid",
-                                 scaling_function_alpha: float = None,
-                                 scaling_function_a: float = None):
+def enclosed_curve_shortening_flow(curve: np.ndarray,
+                                   precision: int = 100,
+                                   step_size: float = 1,
+                                   step_sigma: float = 10,
+                                   resample_sigma: float = 1,
+                                   scaling_function_type: str = "sigmoid",
+                                   scaling_function_alpha: float = None,
+                                   scaling_function_a: float = None):
     '''
-    Convex curve shortening.
+    Enclosed curve shortening flow.
 
     :param scaling_function: Function type used for scaling the curvature magnitude vector.
     :param resample_sigma: Standard deviation for the Gaussian filter used during resampling.
@@ -56,17 +55,17 @@ def convex_curve_shortening_flow(curve: np.ndarray,
 
     for i in range(max_iterations):
 
-        if _break_condition(curve):
+        if _break_condition_ecsf(curve):
             break
 
         if _resample_condition(curve):
-            curve = _gaussian_filter(_resample(curve, resampling_factor), resample_sigma)
+            curve = _utils._gaussian_filter(_utils._resample(curve, resampling_factor), resample_sigma)
 
         curve = curve.astype(float)
 
         step_vectors = step_size * _magnitude_array(curve)[:, None] * _vector_array(curve)
 
-        curve_new = curve + _gaussian_filter(step_vectors, step_sigma)
+        curve_new = curve + _utils._gaussian_filter(step_vectors, step_sigma)
 
         curve = curve_new
 
@@ -98,14 +97,14 @@ def curve_shortening_flow(curve: np.ndarray, n_curves: int, return_initial_curve
         raise ValueError('Curve must have the shape Nx2, i.e. N rows of 2D coordinates.')
 
     n_vertices = curve.shape[0]
-    linear_stds = _linear_step_stds(curve, n_curves, startpoint=return_initial_curve)
+    linear_stds = _linear_step_sigmas(curve, n_curves, startpoint=return_initial_curve)
 
     curves = [_mokhtarian_mackworth92(curve, sigma) for sigma in linear_stds]
 
     return curves
 
 
-def _linear_step_stds(curve: np.ndarray, n_curves: int, startpoint=True):
+def _linear_step_sigmas(curve: np.ndarray, n_curves: int, startpoint=True):
     # Array of n_curve stds that will create linearly spaced curves.
     # Curve shortening flow algorithm found to closely match scaled normal distribution;
     # N(x; \sigma) = n_vertices \exp(-x^2 / 2\sigma^2),    \sigma = pi/20, x > 0
@@ -128,7 +127,7 @@ def _mokhtarian_mackworth92(curve, sigma):
     # Apply Gaussian filter, followed by resampling.
 
     # return _resample(_gaussian_filter(curve, sigma), 1 / _edge_length(curve).mean())
-    return _gaussian_filter(curve, sigma)
+    return _utils._gaussian_filter(curve, sigma)
 
 
 def _magnitude_array(curve: np.ndarray):
@@ -149,42 +148,16 @@ def _scale_curvature(curvature: np.ndarray):
     return _scaling_functions.f_sigmoid(10, 0.1)(curvature)
 
 
-def _break_condition(curve: np.ndarray):
+def _break_condition_ecsf(curve: np.ndarray):
     return _metrics.concavity(curve) < 0.1
 
 
-def _break_condition_convex(curve):
+def _break_condition_csf(curve):
     return curve.shape[0] < 4
-
-
-def _gaussian_filter(curve: np.ndarray, sigma: float):
-    return ndimage.gaussian_filter1d(curve, sigma, axis=0, mode='wrap')
 
 
 def _resample_condition(curve: np.ndarray):
     return True
-
-
-def _resample(curve: np.ndarray, factor: float):
-    # Resample the vertices along the curve.
-    # Return the same curve but with n=int(factor * curve_length) equidistant vertices.
-
-    current_lengths = _vector_maths.edge_length(curve)
-    curve_looped = np.vstack((curve, curve[0]))
-    cumulative_lengths_zero_start = np.hstack((0, current_lengths.cumsum()))
-    total_length = cumulative_lengths_zero_start[-1]
-
-    interp_func = interpolate.interp1d(cumulative_lengths_zero_start, curve_looped, axis=0)
-    new_lengths = np.linspace(0, total_length, int(factor * total_length), endpoint=False)
-
-    return interp_func(new_lengths)
-
-
-def _mean_distance_to_centre_of_mass(curve: np.ndarray):
-    # Metric for determining number of iterations to singularity.
-    # d = 1/|curve| * sum_s(||curve(s) - 1/|curve| * sum_s'(curve(s')) ||)
-
-    return np.linalg.norm(curve-curve.mean(axis=0), axis=1).mean()
 
 
 def _reduce_concave_iterations_to_precision(curves: List, precision: int):

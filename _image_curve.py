@@ -1,5 +1,9 @@
 import numpy as np
 
+import skgeom
+
+from typing import Tuple
+
 import _neighbour_array
 
 
@@ -121,3 +125,23 @@ def _edge_detect(array: np.ndarray) -> np.ndarray:
     array = np.pad(array, 1)
     return array[1:-1, 1:-1] & np.invert(array[1:-1, :-2] & array[1:-1, 2:] &
                                          array[:-2, 1:-1] & array[2:, 1:-1])
+
+
+def curve_to_image_matrix(curve: np.ndarray, shape: Tuple) -> np.ndarray:
+    # Convert a closed curve, defined by a list of coordinates, to a matrix of pixels.
+    # Matrix is of size (shape), if this is big enough to fit the curve.
+    # Otherwise, a bounding box with one pixel padding is used
+
+    polygon = skgeom.Polygon(curve)
+    bbox = polygon.bbox()
+    correction = 0, 0
+
+    if (bbox.xmax() - bbox.xmin() >= shape[0]) | (bbox.ymax() - bbox.ymin() >= shape[1]):
+        shape = (bbox.xmax() - bbox.xmin() + 1, bbox.ymax() - bbox.ymin() + 1)
+        correction = bbox.xmin()+1, bbox.ymin()+1
+
+    mat = np.zeros(shape)
+    mat[tuple(np.floor(p).astype(int) for p in zip(*curve))] = 1
+
+    return mat
+
