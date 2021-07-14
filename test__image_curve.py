@@ -1,7 +1,7 @@
 import numpy as np
 
 from unittest import TestCase
-from _image_curve import _edge_detect, ImageCurve
+from _image_curve import _edge_detect, ImageCurve, curve_to_image_matrix, curve_to_image_matrix_filled
 
 
 class Test(TestCase):
@@ -89,3 +89,25 @@ class Test(TestCase):
         output = np.array([[1, 1], [1, 2], [1, 3], [2, 3], [3, 3], [3, 2], [3, 1], [2, 1]])
 
         self.assertTrue(np.allclose(ImageCurve(input).curve(), output))
+
+    def test_curve_to_image_matrix_length10_square(self):
+        inputx = np.hstack((np.arange(10), 10 * np.ones(10), np.arange(1, 11)[::-1], np.zeros(10))).astype(int) + 1
+        inputy = np.hstack((np.zeros(10), np.arange(10), 10 * np.ones(10), np.arange(1, 11)[::-1])).astype(int) + 1
+
+        input = np.vstack((inputx, inputy))
+
+        output = np.zeros((13, 13))
+        output[tuple(p for p in zip(*input.transpose()))] = 1
+
+        self.assertTrue(np.allclose(curve_to_image_matrix(input.transpose(), shape=(13, 13)), output))
+
+    def test_curve_to_image_matrix_filled_length10_square(self):
+        inputx = np.hstack((np.arange(10), 10 * np.ones(10), np.arange(1, 11)[::-1], np.zeros(10))).astype(int) + 1
+        inputy = np.hstack((np.zeros(10), np.arange(10), 10 * np.ones(10), np.arange(1, 11)[::-1])).astype(int) + 1
+
+        input = np.vstack((inputx, inputy))
+
+        output = np.zeros((13, 13))
+        output[1:-1, 1:-1] = 1
+
+        self.assertTrue(np.allclose(curve_to_image_matrix_filled(input.transpose(), shape=(13, 13)), output))
