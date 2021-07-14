@@ -5,7 +5,7 @@ import skgeom
 from typing import Tuple
 
 import _neighbour_array
-
+import _image_processing
 
 class ImageCurve:
     def __init__(self, im: np.ndarray):
@@ -140,11 +140,12 @@ def curve_to_image_matrix(curve: np.ndarray, shape: Tuple) -> np.ndarray:
         shape = (bbox.xmax() - bbox.xmin() + 1, bbox.ymax() - bbox.ymin() + 1)
         correction = bbox.xmin()+1, bbox.ymin()+1
 
-    mat = np.zeros(shape)
-    mat[tuple(np.floor(p).astype(int) for p in zip(*curve))] = 1
+    image_matrix = np.zeros(shape)
+    image_matrix[tuple(np.floor(p).astype(int) for p in zip(*curve))] = 1
 
-    return mat
+    return image_matrix
 
 def curve_to_image_matrix_filled(curve: np.ndarray, shape: Tuple):
-    pass
+    image_matrix = curve_to_image_matrix(curve, shape)
 
+    return _image_processing.flood_fill(image_matrix)
