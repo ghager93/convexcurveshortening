@@ -145,3 +145,6 @@ def curve_to_image_matrix(curve: np.ndarray, shape: Tuple) -> np.ndarray:
 
     return mat
 
+def curve_to_image_matrix_filled(curve: np.ndarray, shape: Tuple):
+    pass
+
