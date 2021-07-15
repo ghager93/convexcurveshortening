@@ -158,7 +158,7 @@ def curve_to_image_matrix_filled(curve: np.ndarray, shape: Tuple):
     return _image_processing.flood_fill(dilated_image_matrix)
 
 
-def crop_curve(curve: np.ndarray, shape: Tuple):
+def crop(curve: np.ndarray, shape: Tuple):
     # Remove points of curve outside the range [0, shape[0]-1]x[0, shape[1]-1]
 
     return np.array([p for p in curve if (0 <= p[0] < shape[0]) and (0 <= p[1] < shape[1])])

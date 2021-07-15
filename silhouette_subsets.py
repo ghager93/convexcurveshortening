@@ -14,7 +14,7 @@ def silhouette_subsets(path: str, n_silhouettes: int = 10):
 
     curves = curveshortening.enclosed_curve_shortening_flow(curve, n_silhouettes)
 
-    return [_image_curve.curve_to_image_matrix_filled(curve, im.shape) for curve in curves]
+    return [_image_curve.curve_to_image_matrix_filled(_image_curve.cropcurve, im.shape) for curve in curves]
 
 
 def silhouette_subsets_image(path: str, destination: str, n_silhouettes: int = 10):
