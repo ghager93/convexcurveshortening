@@ -4,10 +4,6 @@ import skgeom
 import _vector_maths
 
 
-def average_radius(curve: np.ndarray):
-    return np.linalg.norm(curve-curve.mean(axis=0), axis=1).mean()
-
-
 def curvature(curve: np.ndarray):
     # Curvature is the cross-product of the normal and the tangent, divided by a normalising factor.
     # k = t x n / ||t||**3

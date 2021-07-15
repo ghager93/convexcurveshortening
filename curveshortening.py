@@ -59,13 +59,13 @@ def enclosed_curve_shortening_flow(curve: np.ndarray,
             break
 
         if _resample_condition(curve):
-            curve = _utils._gaussian_filter(_utils._resample(curve, resampling_factor), resample_sigma)
+            curve = _utils.gaussian_filter(_utils.resample(curve, resampling_factor), resample_sigma)
 
         curve = curve.astype(float)
 
         step_vectors = step_size * _magnitude_array(curve)[:, None] * _vector_array(curve)
 
-        curve_new = curve + _utils._gaussian_filter(step_vectors, step_sigma)
+        curve_new = curve + _utils.gaussian_filter(step_vectors, step_sigma)
 
         curve = curve_new
 
@@ -110,7 +110,7 @@ def _linear_step_sigmas(curve: np.ndarray, n_curves: int, startpoint=True):
     # N(x; \sigma) = n_vertices \exp(-x^2 / 2\sigma^2),    \sigma = pi/20, x > 0
 
     sigma2 = (np.pi/20)**2
-    average_radius = _metrics.average_radius(curve)
+    average_radius = _metrics.mean_distance_to_centre_of_mass(curve)
 
     if startpoint:
         linear_steps = np.linspace(average_radius, 0, n_curves, endpoint=False)
@@ -127,7 +127,7 @@ def _mokhtarian_mackworth92(curve, sigma):
     # Apply Gaussian filter, followed by resampling.
 
     # return _resample(_gaussian_filter(curve, sigma), 1 / _edge_length(curve).mean())
-    return _utils._gaussian_filter(curve, sigma)
+    return _utils.gaussian_filter(curve, sigma)
 
 
 def _magnitude_array(curve: np.ndarray):

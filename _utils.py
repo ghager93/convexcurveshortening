@@ -4,11 +4,11 @@ from scipy import ndimage, interpolate
 import _vector_maths
 
 
-def _gaussian_filter(curve: np.ndarray, sigma: float):
+def gaussian_filter(curve: np.ndarray, sigma: float):
     return ndimage.gaussian_filter1d(curve, sigma, axis=0, mode='wrap')
 
 
-def _resample(curve: np.ndarray, factor: float):
+def resample(curve: np.ndarray, factor: float):
     # Resample the vertices along the curve.
     # Return the same curve but with n=int(factor * curve_length) equidistant vertices.
 

@@ -2,6 +2,7 @@ import numpy as np
 
 import skgeom
 
+from skimage import morphology
 from typing import Tuple
 
 import _neighbour_array
@@ -136,16 +137,22 @@ def curve_to_image_matrix(curve: np.ndarray, shape: Tuple) -> np.ndarray:
     bbox = polygon.bbox()
     correction = 0, 0
 
-    if (bbox.xmax() - bbox.xmin() >= shape[0]) | (bbox.ymax() - bbox.ymin() >= shape[1]):
-        shape = (bbox.xmax() - bbox.xmin() + 1, bbox.ymax() - bbox.ymin() + 1)
-        correction = bbox.xmin()+1, bbox.ymin()+1
+    if (bbox.xmin() <= 0) | (bbox.xmax() >= shape[0] - 1) | (bbox.ymin() <= 0) | (bbox.ymax() >= shape[1] - 1):
+        shape = int(bbox.xmax() - bbox.xmin() + 3), int(bbox.ymax() - bbox.ymin() + 3)
+        correction = int(bbox.xmin()-1), int(bbox.ymin()-1)
 
     image_matrix = np.zeros(shape)
-    image_matrix[tuple(np.floor(p).astype(int) for p in zip(*curve))] = 1
+    image_matrix[tuple(np.floor(p).astype(int) for p in zip(*(curve - correction)))] = 1
 
     return image_matrix
 
-def curve_to_image_matrix_filled(curve: np.ndarray, shape: Tuple):
-    image_matrix = curve_to_image_matrix(curve, shape)
 
-    return _image_processing.flood_fill(image_matrix)
+def curve_to_image_matrix_filled(curve: np.ndarray, shape: Tuple):
+    # Curve is converted to a matrix of pixels.
+    # It is then dilated by a 3x3 cross kernel to close the curve for filling.
+    # The matrix curve is then filled using the flood fill technique.
+
+    image_matrix = curve_to_image_matrix(curve, shape)
+    dilated_image_matrix = morphology.dilation(image_matrix)
+
+    return _image_processing.flood_fill(dilated_image_matrix)

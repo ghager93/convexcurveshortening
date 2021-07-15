@@ -91,23 +91,63 @@ class Test(TestCase):
         self.assertTrue(np.allclose(ImageCurve(input).curve(), output))
 
     def test_curve_to_image_matrix_length10_square(self):
-        inputx = np.hstack((np.arange(10), 10 * np.ones(10), np.arange(1, 11)[::-1], np.zeros(10))).astype(int) + 1
-        inputy = np.hstack((np.zeros(10), np.arange(10), 10 * np.ones(10), np.arange(1, 11)[::-1])).astype(int) + 1
+        sidelen = 10
+        inputx = np.hstack((np.arange(sidelen-1), (sidelen-1) * np.ones(sidelen-1),
+                            np.arange(1, sidelen)[::-1], np.zeros(sidelen-1))).astype(int) + 1
+        inputy = np.hstack((np.zeros(sidelen-1), np.arange(sidelen-1), (sidelen-1) * np.ones(sidelen-1),
+                            np.arange(1, sidelen)[::-1])).astype(int) + 1
 
         input = np.vstack((inputx, inputy))
 
-        output = np.zeros((13, 13))
+        output = np.zeros((sidelen+2, sidelen+2))
         output[tuple(p for p in zip(*input.transpose()))] = 1
 
-        self.assertTrue(np.allclose(curve_to_image_matrix(input.transpose(), shape=(13, 13)), output))
+        self.assertTrue(np.allclose(curve_to_image_matrix(input.transpose(), shape=(sidelen+2, sidelen+2)), output))
 
-    def test_curve_to_image_matrix_filled_length10_square(self):
-        inputx = np.hstack((np.arange(10), 10 * np.ones(10), np.arange(1, 11)[::-1], np.zeros(10))).astype(int) + 1
-        inputy = np.hstack((np.zeros(10), np.arange(10), 10 * np.ones(10), np.arange(1, 11)[::-1])).astype(int) + 1
+    def test_curve_to_image_matrix_curve_bigger_than_shape_length10_square(self):
+        sidelen = 10
+        inputx = np.hstack((np.arange(sidelen-1), (sidelen-1) * np.ones(sidelen-1),
+                            np.arange(1, sidelen)[::-1], np.zeros(sidelen-1))).astype(int) + 1
+        inputy = np.hstack((np.zeros(sidelen-1), np.arange(sidelen-1), (sidelen-1) * np.ones(sidelen-1),
+                            np.arange(1, sidelen)[::-1])).astype(int) + 1
 
         input = np.vstack((inputx, inputy))
 
-        output = np.zeros((13, 13))
-        output[1:-1, 1:-1] = 1
+        output = np.zeros((sidelen+2, sidelen+2))
+        output[tuple(p for p in zip(*input.transpose()))] = 1
 
-        self.assertTrue(np.allclose(curve_to_image_matrix_filled(input.transpose(), shape=(13, 13)), output))
+        self.assertTrue(np.allclose(curve_to_image_matrix(input.transpose(), shape=(8, 8)), output))
+
+    def test_curve_to_image_matrix_curve_outside_boundary_length10_square(self):
+        sidelen = 10
+        inputx = np.hstack((np.arange(sidelen-1), (sidelen-1) * np.ones(sidelen-1),
+                            np.arange(1, sidelen)[::-1], np.zeros(sidelen-1))).astype(int) + 5
+        inputy = np.hstack((np.zeros(sidelen-1), np.arange(sidelen-1), (sidelen-1) * np.ones(sidelen-1),
+                            np.arange(1, sidelen)[::-1])).astype(int) + 1
+
+        input = np.vstack((inputx, inputy))
+
+        output = np.zeros((sidelen+2, sidelen+2))
+        output[1:-1, 1:-1] = 1
+        output[2:-2, 2:-2] = 0
+
+        self.assertTrue(np.allclose(curve_to_image_matrix(input.transpose(), shape=(sidelen+2, sidelen+2)), output))
+
+    def test_curve_to_image_matrix_filled_length10_square(self):
+        sidelen = 10
+        inputx = np.hstack((np.arange(sidelen-1), (sidelen-1) * np.ones(sidelen-1),
+                            np.arange(1, sidelen)[::-1], np.zeros(sidelen-1))).astype(int) + 2
+        inputy = np.hstack((np.zeros(sidelen-1), np.arange(sidelen-1), (sidelen-1) * np.ones(sidelen-1),
+                            np.arange(1, sidelen)[::-1])).astype(int) + 2
+
+        input = np.vstack((inputx, inputy))
+
+        output = np.zeros((14, 14))
+        output[1:-1, 1:-1] = 1
+        output[1, 1] = 0
+        output[-2, 1] = 0
+        output[1, -2] = 0
+        output[-2, -2] = 0
+
+        self.assertTrue(np.allclose(curve_to_image_matrix_filled(input.transpose(),
+                                                                 shape=(sidelen+4, sidelen+4)), output))
