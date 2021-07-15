@@ -68,7 +68,6 @@ def enclosed_curve_shortening_flow(curve: np.ndarray,
         curve_new = curve + _utils.gaussian_filter(step_vectors, step_sigma)
 
         curve = curve_new
-
         curves.append(curve)
 
     concave_curves = _reduce_concave_iterations_to_precision(curves, precision)
@@ -171,8 +170,9 @@ def _reduce_to_roughly_equal_curves(curves: List, precision: int):
     # of the length of the last concave curve to the length of the first.
     # Thus, the number of returned curves is floor(precision * (1 - curves[-1] / curves[0])).
 
-    n_curves = np.floor(precision *
-                        (1 - _metrics.total_edge_length(curves[-1]) / _metrics.total_edge_length(curves[0]))
-                        ).astype(int)
+    n_curves = np.floor(
+        precision * (1 - _metrics.total_edge_length(curves[-1]) / _metrics.total_edge_length(curves[0]))).astype(int)
+
+    n_curves = max(n_curves, 0)
 
     return [curves[i] for i in np.round(np.linspace(0, len(curves) - 1, n_curves)).astype(int)]

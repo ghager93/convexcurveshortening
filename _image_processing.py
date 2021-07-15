@@ -29,11 +29,19 @@ def load_image(filename: str):
     return im
 
 
-def save_image(image: np.ndarray, filename: str, date_stamp: bool = True):
-    if date_stamp:
-        filename = filename + datetime.now().strftime("%Y%m%d_%H%M%S")
+def int_to_rgb_colour(image: np.ndarray):
+    image = image / np.where(image.max() == 0, 1, image.max()) * ((2**8) - 1)
 
-    Image(image).save(filename, 'JPEG')
+    return np.array((image, (2**7) * np.ones(image.shape),
+                     (2**7) * np.ones(image.shape))).transpose(1, 2, 0).astype(np.uint8)
+
+def save_image(image: np.ndarray, filename: str, date_stamp: bool = True):
+    # Matrix must be of type np.uint8.
+
+    if date_stamp:
+        filename = filename + datetime.now().strftime("%Y%m%d_%H%M%S") + '.bmp'
+
+    Image.fromarray(image).save(filename, 'JPEG')
 
 
 def smooth_image(image: np.ndarray, factor: int = 1):
@@ -43,6 +51,14 @@ def smooth_image(image: np.ndarray, factor: int = 1):
         raise ValueError('Smoothing factor must be positive integer.')
     return morphology.binary_closing(morphology.binary_opening(image, _structuring_element.circle(factor).kernel),
                                      _structuring_element.circle(factor).kernel)
+
+
+def open_image(image: np.ndarray, factor: int = 1):
+    if image.ndim != 2:
+        raise ValueError('Image must be 2D.')
+    if factor <= 0:
+        raise ValueError('Smoothing factor must be positive integer.')
+    return morphology.binary_opening(image, _structuring_element.circle(factor).kernel)
 
 
 def flood_fill(image: np.ndarray):
