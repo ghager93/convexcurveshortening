@@ -32,8 +32,9 @@ def load_image(filename: str):
 def int_to_rgb_colour(image: np.ndarray):
     image = image / np.where(image.max() == 0, 1, image.max()) * ((2**8) - 1)
 
-    return np.array((image, (2**7) * np.ones(image.shape),
-                     (2**7) * np.ones(image.shape))).transpose(1, 2, 0).astype(np.uint8)
+    return np.array((image,
+                     (2**7) * np.where(image == 0, 2, 1),
+                     (2**7) * np.where(image == 0, 2, 1))).transpose(1, 2, 0).astype(np.uint8)
 
 def save_image(image: np.ndarray, filename: str, date_stamp: bool = True):
     # Matrix must be of type np.uint8.
@@ -57,8 +58,16 @@ def open_image(image: np.ndarray, factor: int = 1):
     if image.ndim != 2:
         raise ValueError('Image must be 2D.')
     if factor <= 0:
-        raise ValueError('Smoothing factor must be positive integer.')
+        raise ValueError('Opening factor must be positive integer.')
     return morphology.binary_opening(image, _structuring_element.circle(factor).kernel)
+
+
+def dilate_image(image: np.ndarray, factor: int = 1):
+    if image.ndim != 2:
+        raise ValueError('Image must be 2D.')
+    if factor <= 0:
+        raise ValueError('Dilation factor must be positive integer.')
+    return morphology.binary_dilation(image, _structuring_element.circle(factor).kernel)
 
 
 def flood_fill(image: np.ndarray):
