@@ -153,7 +153,7 @@ def curve_to_image_matrix_filled(curve: np.ndarray, shape: Tuple):
     # The matrix curve is then filled using the flood fill technique.
 
     image_matrix = curve_to_image_matrix(curve, shape)
-    dilated_image_matrix = morphology.dilation(image_matrix)
+    dilated_image_matrix = _image_processing.dilate_image(image_matrix)
 
     return _image_processing.flood_fill(dilated_image_matrix)
 

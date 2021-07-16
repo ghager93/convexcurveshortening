@@ -11,10 +11,10 @@ def silhouette_subset(path: str, n_silhouettes: int = 10):
     return [_fill_silhouette(image_curve) for image_curve in image_curves]
 
 
-def _image_curve_subset(path: str, n_silhouettes: int = 10):
+def _curve_subset(path: str, n_silhouettes: int = 10):
     im = _image_processing.load_image(path)
     im = np.pad(im, 10)
-    im_smoothed = _image_processing.smooth_image(im, 50)
+    im_smoothed = _image_processing.open_image(im, 50)
 
     curve = _image_curve.ImageCurve(im_smoothed).curve()
 
@@ -24,15 +24,20 @@ def _image_curve_subset(path: str, n_silhouettes: int = 10):
     return curves
 
 
+def _image_curve_subset(path: str, n_silhouettes: int = 10):
+    image = _image_processing.load_image(path)
+    curves = _curve_subset(path, n_silhouettes)
+
+    return [_image_processing.dilate_image(_image_curve.curve_to_image_matrix(curve, image.shape))
+            for curve in curves]
+
+
 def _fill_silhouette(image: np.ndarray):
-    return _image_curve.curve_to_image_matrix_filled(_image_curve.crop(image, image.shape), image.shape)
+    dilated_image = _image_processing.dilate_image(image)
+    return _image_processing.flood_fill(dilated_image)
 
 
 def silhouette_subset_image(path: str, destination: str, n_silhouettes: int = 10, add_border: bool = True):
-    _image_processing.save_image(
-        _image_processing.int_to_rgb_colour(
-            sum(silhouette_subset(path, n_silhouettes))), destination)
-
     image_curves = _image_curve_subset(path, n_silhouettes)
 
     silhouettes = [_fill_silhouette(image_curve) for image_curve in image_curves]
