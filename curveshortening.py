@@ -173,6 +173,6 @@ def _reduce_to_roughly_equal_curves(curves: List, precision: int):
     n_curves = np.floor(
         precision * (1 - _metrics.total_edge_length(curves[-1]) / _metrics.total_edge_length(curves[0]))).astype(int)
 
-    n_curves = max(n_curves, 0)
+    n_curves = max(n_curves, 1)
 
     return [curves[i] for i in np.round(np.linspace(0, len(curves) - 1, n_curves)).astype(int)]

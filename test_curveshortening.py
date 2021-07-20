@@ -23,62 +23,11 @@ class Test(TestCase):
     def test__vector_array(self):
         self.fail()
 
-    def test__curvature_parabola_y_equals_x_squared(self):
-        inputx = np.linspace(-4, 4, 100)
-        inputy = inputx**2
-
-        input = np.vstack((inputy, inputx)).transpose()
-
-        output = 2 / (4*inputx**2 + 1)**(3/2)
-
-        self.assertTrue(np.allclose(_metrics.curvature(input)[1:-1], output[1:-1], atol=1.e-3, rtol=1.e-1))
-
-    def test_curvature_straight_line(self):
-        input = np.array([np.arange(10), np.arange(10)]).transpose()
-
-        output = np.zeros(10)
-
-        self.assertTrue(np.allclose(_metrics.curvature(input)[1:-1], output[1:-1]))
-
     def test__normalise_curvature(self):
         self.fail()
 
     def test__scale_curvature(self):
         self.fail()
-
-    def test__edge_length_four_point_unit_length_square(self):
-        input = np.array([[0, 0], [0, 1], [1, 1], [1, 0]])
-        output = np.array([1, 1, 1, 1])
-
-        self.assertTrue(np.allclose(_vector_maths.edge_length(input), output))
-
-    def test__edge_length_four_point_spiral(self):
-        input = np.array([[0, 0], [0, 1], [1, 2], [2, -1]])
-        output = np.array([np.sqrt(5), 1, np.sqrt(2), np.sqrt(10)])
-
-        self.assertTrue(np.allclose(_vector_maths.edge_length(input), output))
-
-    def test__tangent_four_point_square(self):
-        input = np.array([[0, 0], [0, 1], [1, 1], [1, 0]])
-        output = np.array([[-1, 0], [0, 1], [1, 0], [0, -1]])
-
-        self.assertTrue(np.allclose(_vector_maths.tangent(input), output))
-
-    def test__normal_L_shape(self):
-        input = np.array([[0, 0], [0, 1/2], [0, 1], [1/2, 1], [1, 1], [1, 3/2],
-                          [1, 2], [3/2, 2], [2, 2], [2, 1], [2, 0], [1, 0]])
-        output = np.array([[4/3, 4/3], [0, 0], [2, -2], [0, 0], [-2, 2], [0, 0], [2, -2],
-                           [0, 0], [-4/3, -4/3], [0, 0], [-1, 1], [0, 0]])
-
-        self.assertTrue(np.allclose(_vector_maths.normal(input), output))
-
-    def test__inward_normal_L_shape(self):
-        input = np.array([[0, 0], [0, 1/2], [0, 1], [1/2, 1], [1, 1], [1, 3/2],
-                          [1, 2], [3/2, 2], [2, 2], [2, 1], [2, 0], [1, 0]])
-        output = np.array([[0, 1], [1, 0], [1, 0], [0, -1], [0, -1], [1, 0], [1, 0],
-                           [0, -1], [0, -1], [-1, 0], [-1, 0], [0, 1]])
-
-        self.assertTrue(np.allclose(_vector_maths.inward_normal(input), output))
 
     def test__concavity(self):
         self.fail()
@@ -105,3 +54,13 @@ class Test(TestCase):
         factor = 4 / 8
 
         self.assertTrue(np.allclose(_utils.resample(input, factor), input))
+
+    def test__reduce_concave_iterations_to_precision_single_curve_circle_precision_10(self):
+        inputx = np.cos(2 * np.pi * np.linspace(0, 1, 100, endpoint=False))
+        inputy = np.sin(2 * np.pi * np.linspace(0, 1, 100, endpoint=False))
+
+        input = [np.vstack((inputx, inputy)).transpose()]
+
+        output = input
+
+        self.assertTrue(np.allclose(curveshortening._reduce_concave_iterations_to_precision(input, 10), output))

@@ -1,5 +1,6 @@
 import PIL
 import numpy as np
+import cv2
 import warnings
 
 from PIL import Image
@@ -83,7 +84,7 @@ def flood_fill(image: np.ndarray):
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        filled_im = morphology.flood_fill(image, seed_pixel, 1)
+        filled_im = morphology.flood_fill(image, seed_pixel, 1, connectivity=0)
 
     if filled_im[0, 0]:
         # If all pixels of the filled image are high, the curve either does not have an interior
@@ -101,6 +102,23 @@ def flood_fill(image: np.ndarray):
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            filled_im = morphology.flood_fill(image, seed_pixel, 1)
+            filled_im = morphology.flood_fill(image, seed_pixel, 1, connectivity=0)
 
     return filled_im
+
+
+def flood_fill_cv(image: np.ndarray):
+    # Fill in pixels of binary image of a closed curve.
+    # Fills with a seed point in the top-left corner, which is assumed background.
+    # The fill is then inverted.
+    # Assumes there is one closed curve that is simple.
+    # Uses cv2.floodFill which is significantly faster than skimage.
+
+    filled = image.copy().astype(np.uint8)
+    seed_point = 0, 0
+    mask = np.zeros((image.shape[0] + 2, image.shape[1] + 2), dtype=np.uint8)
+    new_val = 2
+
+    cv2.floodFill(filled, mask, seed_point, new_val)
+
+    return np.where(filled == new_val, 0, 1)

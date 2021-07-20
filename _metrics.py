@@ -18,9 +18,13 @@ def curvature(curve: np.ndarray):
 
 def normalised_curvature(curve: np.ndarray):
     # Restrict curvature to between [-1, 1]
-    curvature_ = curvature(curve)
 
-    return curvature_ / np.max(abs(curvature_))
+    curvature_ = curvature(curve)
+    norm = np.max(abs(curvature_))
+    if norm == 0:
+        return curvature_
+    else:
+        return curvature_ / norm
 
 
 def total_edge_length(curve: np.ndarray):
