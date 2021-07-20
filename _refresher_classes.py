@@ -17,16 +17,21 @@ class ECSFRefresher:
 class IterativeECSFRefresher(ECSFRefresher):
     def __init__(self, refresh_iterative_interval: int):
         self.refresh_iterative_interval = refresh_iterative_interval
-        self.curr_interval = 0
+        self.curr_interation = 0
 
     def start(self):
-        self.curr_interval = 0
+        self.curr_interation = 0
 
     def next_step(self):
-        self.curr_interval += 1
+        self.curr_interation += 1
 
     def is_time_to_refresh(self):
-        return not (self.curr_interval % self.refresh_iterative_interval)
+        return not (self.curr_interation % self.refresh_iterative_interval)
+
+    def perform_refreshing(self, concavity: float, area_percent: float):
+        print(f"Iteration: {self.curr_interation}, "
+              f"Concavity: {concavity: .2f}, "
+              f"Area to original %: {area_percent: .2f}")
 
 
 class TimeECSFRefresher(ECSFRefresher):

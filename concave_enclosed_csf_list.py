@@ -34,7 +34,7 @@ class ConcaveEnclosedCSFList:
 
         curve = curve.astype(float)
 
-        self.curves = list(curve)
+        self.curves = [curve]
         self.precision = precision
         self.step_size = step_size
         self.step_sigma = step_sigma
@@ -73,7 +73,7 @@ class ConcaveEnclosedCSFList:
         return _terminator_classes.ConditionalECSFTerminator(self.concavity_threshold)
 
     def _curr_area_ratio(self):
-        return _metrics.enclosed_area(self.curr_curve) / self.initial_area
+        return 100 * _metrics.enclosed_area(self.curr_curve) / self.initial_area
 
     def _resample(self):
         return _utils.resample(self.curr_curve, self.resampling_factor)
