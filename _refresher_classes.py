@@ -11,6 +11,8 @@ class ECSFRefresher:
     def is_time_to_refresh(self):
         pass
 
+    def perform_refreshing(self, concavity: float, area_percent: float):
+        print(f"Concavity: {concavity: .2f}, Area to original %: {area_percent: .2f}")
 
 class IterativeECSFRefresher(ECSFRefresher):
     def __init__(self, refresh_iterative_interval: int):
