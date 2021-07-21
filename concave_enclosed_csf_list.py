@@ -72,11 +72,23 @@ class ConcaveEnclosedCSFList:
     def _set_conditional_terminator(self):
         return _terminator_classes.ConditionalECSFTerminator(self.concavity_threshold)
 
-    def _curr_area_ratio(self):
+    def _curr_curve_area_percent_of_original(self):
         return 100 * _metrics.enclosed_area(self.curr_curve) / self.initial_area
+
+    def _is_time_to_resample(self):
+        return True
 
     def _resample(self):
         return _utils.resample(self.curr_curve, self.resampling_factor)
+
+    def _filtered_resample(self):
+        return _utils.gaussian_filter(self._resample(), self.resample_sigma)
+
+    def _filtered_step_vector(self):
+        return _utils.gaussian_filter(self._step_vector(), self.step_sigma)
+
+    def _step_vector(self):
+        return self.step_size * self._magnitude_array()[:, None] * self._vector_array()
 
     def _magnitude_array(self):
         # Magnitudes of iteration for each vertex.
@@ -89,18 +101,6 @@ class ConcaveEnclosedCSFList:
         # Calculated as parallel to the normal and facing inward.
 
         return _vector_maths.inward_normal(self.curr_curve)
-
-    def _filtered_resample(self):
-        return _utils.gaussian_filter(self._resample(), self.resample_sigma)
-
-    def _filtered_step_vector(self):
-        return _utils.gaussian_filter(self._step_vector(), self.step_sigma)
-
-    def _step_vector(self):
-        return self.step_size * self._magnitude_array()[:, None] * self._vector_array()
-
-    def _is_time_to_resample(self):
-        return True
 
     def _initial_vertex_count(self):
         return self.curves[0].shape[1]
@@ -115,23 +115,6 @@ class ConcaveEnclosedCSFList:
         self.time_terminator.start()
         self.conditional_terminator.start(_metrics.concavity(self.curr_curve))
 
-    def run(self):
-        self._initialise()
-
-        while True:
-            if (self.iterative_terminator.is_finished()
-                    or self.time_terminator.is_finished()
-                    or self.conditional_terminator.is_finished()):
-                break
-
-            if self.refresher.is_time_to_refresh():
-                self.refresher.perform_refreshing(_metrics.concavity(self.curr_curve), self._curr_area_ratio())
-
-            if self.saver.is_time_to_save():
-                self.curves.append(self.curr_curve)
-
-            self._step()
-
     def _step(self):
 
         curve_new = self.curr_curve + self._filtered_step_vector()
@@ -143,3 +126,21 @@ class ConcaveEnclosedCSFList:
         self.iterative_terminator.next_step()
         self.time_terminator.next_step()
         self.conditional_terminator.next_step(_metrics.concavity(self.curr_curve))
+
+    def run(self):
+        self._initialise()
+
+        while True:
+            if (self.iterative_terminator.is_finished()
+                    or self.time_terminator.is_finished()
+                    or self.conditional_terminator.is_finished()):
+                break
+
+            if self.refresher.is_time_to_refresh():
+                self.refresher.perform_refreshing(_metrics.concavity(self.curr_curve),
+                                                  self._curr_curve_area_percent_of_original())
+
+            if self.saver.is_time_to_save():
+                self.curves.append(self.curr_curve)
+
+            self._step()
