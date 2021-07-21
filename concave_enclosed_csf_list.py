@@ -12,36 +12,40 @@ import _terminator_classes
 
 
 class ConcaveEnclosedCSFList:
+    """
+    Enclosed curve shortening flow.
+
+    :param scaling_function: Function type used for scaling the curvature magnitude vector.
+    :param resample_sigma: Standard deviation for the Gaussian filter used during resampling.
+    :param step_sigma: Standard deviation for the Gaussian filter used on the step vector.
+    :param curve: Nx2 Numpy array, where N is the number of vertices in the curve.
+    :param step_size: Scales magnitude of each iteration.
+    :return:
+    """
     def __init__(self, curve: np.ndarray,
-                 precision: int = 100,
+                 return_size: int = 100,
                  step_size: float = 1,
                  step_sigma: float = 10,
                  resample_sigma: float = 1,
                  scaling_function: Callable = None,
                  max_iterations: int = 10000,
                  max_seconds: float = 100,
-                 concavity_threshold: float = 0.1):
-        """
-        Enclosed curve shortening flow.
-
-        :param scaling_function: Function type used for scaling the curvature magnitude vector.
-        :param resample_sigma: Standard deviation for the Gaussian filter used during resampling.
-        :param step_sigma: Standard deviation for the Gaussian filter used on the step vector.
-        :param curve: Nx2 Numpy array, where N is the number of vertices in the curve.
-        :param step_size: Scales magnitude of each iteration.
-        :return:
-        """
+                 concavity_threshold: float = 0.1,
+                 refresh_interval: int = 1000,
+                 save_interval: int = 1000):
 
         curve = curve.astype(float)
 
         self.curves = [curve]
-        self.precision = precision
+        self.return_size = return_size
         self.step_size = step_size
         self.step_sigma = step_sigma
         self.resample_sigma = resample_sigma
         self.max_iterations = max_iterations
         self.max_seconds = max_seconds
         self.concavity_threshold = concavity_threshold
+        self.refresh_interval = refresh_interval
+        self.save_interval = save_interval
 
         if scaling_function is None:
             self.scaling_function = _scaling_functions.f_sigmoid(10, 0.1)
@@ -58,10 +62,10 @@ class ConcaveEnclosedCSFList:
         self.curr_curve = curve
 
     def _set_refresher(self):
-        return _refresher_classes.IterativeECSFRefresher(int(self.max_iterations / 10))
+        return _refresher_classes.IterativeECSFRefresher(self.refresh_interval)
 
     def _set_saver(self):
-        return _saver_classes.IterativeECSFSaver(int(self.max_iterations / 10))
+        return _saver_classes.IterativeECSFSaver(self.save_interval)
 
     def _set_iterative_terminator(self):
         return _terminator_classes.IterativeECSFTerminator(self.max_iterations)
@@ -79,10 +83,11 @@ class ConcaveEnclosedCSFList:
         return True
 
     def _resample(self):
-        return _utils.resample(self.curr_curve, self.resampling_factor)
+        self.curr_curve = _utils.resample(self.curr_curve, self.resampling_factor)
 
     def _filtered_resample(self):
-        return _utils.gaussian_filter(self._resample(), self.resample_sigma)
+        self.curr_curve = _utils.gaussian_filter(_utils.resample(self.curr_curve, self.resampling_factor),
+                                                 self.resample_sigma)
 
     def _filtered_step_vector(self):
         return _utils.gaussian_filter(self._step_vector(), self.step_sigma)
@@ -120,6 +125,9 @@ class ConcaveEnclosedCSFList:
         curve_new = self.curr_curve + self._filtered_step_vector()
 
         self.curr_curve = curve_new
+
+        if self._is_time_to_resample():
+            self._filtered_resample()
 
         self.refresher.next_step()
         self.saver.next_step()
