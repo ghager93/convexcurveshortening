@@ -101,7 +101,7 @@ class ConcaveEnclosedCSFList:
         # Magnitudes of iteration for each vertex.
         # Calculated as a scaled version of the normalised curvature.
 
-        return self.scaling_function(_metrics.normalised_curvature(self.curr_curve))
+        return self.scaling_function(_metrics.normalised_curvature_positive_l1(self.curr_curve))
 
     def _vector_array(self):
         # Vectors of iteration for each vertex.

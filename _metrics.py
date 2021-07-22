@@ -27,6 +27,18 @@ def normalised_curvature(curve: np.ndarray):
         return curvature_ / norm
 
 
+def normalised_curvature_positive_l1(curve):
+    # Scale curvature such that the maximum positive curvature is one.
+    # If no positive curvature, return unscaled.
+
+    curvature_ = curvature(curve)
+    norm = np.max(curvature_)
+    if norm <= 0:
+        return curvature_
+    else:
+        return curvature_ / norm
+
+
 def total_edge_length(curve: np.ndarray):
     return _vector_maths.edge_length(curve).sum()
 
