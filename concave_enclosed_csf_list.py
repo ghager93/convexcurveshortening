@@ -49,6 +49,8 @@ class ConcaveEnclosedCSFList:
 
         if scaling_function is None:
             self.scaling_function = _scaling_functions.f_sigmoid(10, 0.1)
+        else:
+            self.scaling_function = scaling_function
 
         self.resampling_factor = curve.shape[0] / _metrics.total_edge_length(curve)
         self.initial_area = _metrics.enclosed_area(curve)
