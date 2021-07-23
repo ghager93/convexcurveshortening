@@ -28,3 +28,10 @@ def edge_length(curve: np.ndarray):
     # Euclidean distance between each neighbouring vertex.
 
     return np.linalg.norm(curve - np.roll(curve, 1, axis=0), axis=1)
+
+
+def centre_of_mass(curve: np.ndarray):
+    # Returns the average point of a closed curve.
+    # For a circle, this is the centre.
+
+    return curve.mean(axis=0)

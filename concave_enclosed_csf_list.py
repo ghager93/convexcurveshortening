@@ -31,10 +31,12 @@ class ConcaveEnclosedCSFList:
                  max_iterations: int = 10000,
                  max_seconds: float = 100,
                  concavity_threshold: float = 0.1,
-                 refresh_interval: int = 1000,
-                 save_interval: int = 1000):
+                 refresh_interval: int = 100,
+                 save_interval: int = 100):
 
         curve = curve.astype(float)
+
+        self.initial_curve = curve
 
         self.curves = [curve]
         self.return_size = return_size
@@ -53,13 +55,17 @@ class ConcaveEnclosedCSFList:
             self.scaling_function = scaling_function
 
         self.resampling_factor = curve.shape[0] / _metrics.total_edge_length(curve)
-        self.initial_area = _metrics.enclosed_area(curve)
+        # self.initial_area = _metrics.enclosed_area(curve)
+
+        self.areas = [_metrics.enclosed_area(curve)]
 
         self.refresher = self._set_refresher()
         self.saver = self._set_saver()
         self.iterative_terminator = self._set_iterative_terminator()
         self.time_terminator = self._set_time_terminator()
         self.conditional_terminator = self._set_conditional_terminator()
+
+        self.intersecting_curve_flag = False
 
         self.curr_curve = curve
 
@@ -79,7 +85,7 @@ class ConcaveEnclosedCSFList:
         return _terminator_classes.ConditionalECSFTerminator(self.concavity_threshold)
 
     def _curr_curve_area_percent_of_original(self):
-        return 100 * _metrics.enclosed_area(self.curr_curve) / self.initial_area
+        return 100 * _metrics.enclosed_area(self.curr_curve) / self.areas[0]
 
     def _is_time_to_resample(self):
         return True
@@ -121,6 +127,11 @@ class ConcaveEnclosedCSFList:
         self.iterative_terminator.start()
         self.time_terminator.start()
         self.conditional_terminator.start(_metrics.concavity(self.curr_curve))
+        self.intersecting_curve_flag = False
+
+        self.curr_curve = self.initial_curve
+        self.curves = [self.initial_curve]
+        self.areas = [_metrics.enclosed_area(self.initial_curve)]
 
     def _step(self):
 
@@ -146,11 +157,18 @@ class ConcaveEnclosedCSFList:
                     or self.conditional_terminator.is_finished()):
                 break
 
+            if self.intersecting_curve_flag:
+                print("Intersection in subset curve, try a smaller step size.")
+                break
+
             if self.refresher.is_time_to_refresh():
                 self.refresher.perform_refreshing(_metrics.concavity(self.curr_curve),
                                                   self._curr_curve_area_percent_of_original())
 
             if self.saver.is_time_to_save():
+                self.areas.append(_metrics.enclosed_area(self.curr_curve))
+                if(self.areas[-1] > self.areas[-2]):
+                    self.intersecting_curve_flag = True
                 self.curves.append(self.curr_curve)
 
             self._step()
