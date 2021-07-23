@@ -55,7 +55,7 @@ class ConcaveEnclosedCSFList:
             self.scaling_function = scaling_function
 
         self.resampling_factor = curve.shape[0] / _metrics.total_edge_length(curve)
-        # self.initial_area = _metrics.enclosed_area(curve)
+        self.initial_area = _metrics.enclosed_area(curve)
 
         self.areas = [_metrics.enclosed_area(curve)]
 
@@ -85,7 +85,7 @@ class ConcaveEnclosedCSFList:
         return _terminator_classes.ConditionalECSFTerminator(self.concavity_threshold)
 
     def _curr_curve_area_percent_of_original(self):
-        return 100 * _metrics.enclosed_area(self.curr_curve) / self.areas[0]
+        return 100 * _metrics.enclosed_area(self.curr_curve) / self.initial_area
 
     def _is_time_to_resample(self):
         return True
@@ -130,8 +130,11 @@ class ConcaveEnclosedCSFList:
         self.intersecting_curve_flag = False
 
         self.curr_curve = self.initial_curve
-        self.curves = [self.initial_curve]
-        self.areas = [_metrics.enclosed_area(self.initial_curve)]
+
+        # self.curves = [self.initial_curve]
+        # self.areas = [_metrics.enclosed_area(self.initial_curve)]
+        self.curves = []
+        self.areas = []
 
     def _step(self):
 
@@ -167,7 +170,7 @@ class ConcaveEnclosedCSFList:
 
             if self.saver.is_time_to_save():
                 self.areas.append(_metrics.enclosed_area(self.curr_curve))
-                if(self.areas[-1] > self.areas[-2]):
+                if len(self.areas) > 1 and self.areas[-1] > self.areas[-2]:
                     self.intersecting_curve_flag = True
                 self.curves.append(self.curr_curve)
 
