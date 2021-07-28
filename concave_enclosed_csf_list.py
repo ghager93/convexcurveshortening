@@ -55,9 +55,12 @@ class ConcaveEnclosedCSFList:
             self.scaling_function = scaling_function
 
         self.resampling_factor = curve.shape[0] / _metrics.total_edge_length(curve)
+
         self.initial_area = _metrics.enclosed_area(curve)
+        self.initial_length = _metrics.total_edge_length(curve)
 
         self.areas = [_metrics.enclosed_area(curve)]
+        self.lengths = [_metrics.total_edge_length(curve)]
 
         self.refresher = self._set_refresher()
         self.saver = self._set_saver()
@@ -86,6 +89,9 @@ class ConcaveEnclosedCSFList:
 
     def _curr_curve_area_percent_of_original(self):
         return 100 * _metrics.enclosed_area(self.curr_curve) / self.initial_area
+
+    def _curr_curve_length_percent_of_original(self):
+        return 100 * _metrics.total_edge_length(self.curr_curve) / self.initial_length
 
     def _is_time_to_resample(self):
         return True
@@ -135,6 +141,7 @@ class ConcaveEnclosedCSFList:
         # self.areas = [_metrics.enclosed_area(self.initial_curve)]
         self.curves = []
         self.areas = []
+        self.lengths = []
 
     def _step(self):
 
@@ -160,18 +167,35 @@ class ConcaveEnclosedCSFList:
                     or self.conditional_terminator.is_finished()):
                 break
 
+            # if self.intersecting_curve_flag:
+            #     print("Intersection in subset curve, try a smaller step size.")
+            #     break
+
             if self.intersecting_curve_flag:
-                print("Intersection in subset curve, try a smaller step size.")
-                break
+                raise Exception("Intersection in subset curve, try a smaller step size.")
 
             if self.refresher.is_time_to_refresh():
                 self.refresher.perform_refreshing(_metrics.concavity(self.curr_curve),
-                                                  self._curr_curve_area_percent_of_original())
+                                                  self._curr_curve_area_percent_of_original(),
+                                                  self._curr_curve_length_percent_of_original())
+
+            # if self.saver.is_time_to_save():
+            #     self.areas.append(_metrics.enclosed_area(self.curr_curve))
+            #     if len(self.areas) > 1 and self.areas[-1] > self.areas[-2]:
+            #         self.intersecting_curve_flag = True
+            #     self.curves.append(self.curr_curve)
 
             if self.saver.is_time_to_save():
-                self.areas.append(_metrics.enclosed_area(self.curr_curve))
-                if len(self.areas) > 1 and self.areas[-1] > self.areas[-2]:
+                self.lengths.append(_metrics.total_edge_length(self.curr_curve))
+                # self.areas.append(_metrics.enclosed_area(self.curr_curve))
+                if len(self.lengths) > 1 and self.lengths[-1] > self.lengths[-2]:
                     self.intersecting_curve_flag = True
                 self.curves.append(self.curr_curve)
 
             self._step()
+
+    def get_n_curves(self, n: int):
+        return [self.curves[i] for i in np.linspace(0, len(self.curves)-1, n, endpoint=True).astype(int)]
+
+    def last_to_first_curve_area_ratio(self):
+        return _metrics.enclosed_area(self.curr_curve) / self.initial_area
