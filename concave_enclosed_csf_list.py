@@ -56,10 +56,10 @@ class ConcaveEnclosedCSFList:
 
         self.resampling_factor = curve.shape[0] / _metrics.total_edge_length(curve)
 
-        self.initial_area = _metrics.enclosed_area(curve)
+        # self.initial_area = _metrics.enclosed_area(curve)
         self.initial_length = _metrics.total_edge_length(curve)
 
-        self.areas = [_metrics.enclosed_area(curve)]
+        # self.areas = [_metrics.enclosed_area(curve)]
         self.lengths = [_metrics.total_edge_length(curve)]
 
         self.refresher = self._set_refresher()
@@ -140,7 +140,7 @@ class ConcaveEnclosedCSFList:
         # self.curves = [self.initial_curve]
         # self.areas = [_metrics.enclosed_area(self.initial_curve)]
         self.curves = []
-        self.areas = []
+        # self.areas = []
         self.lengths = []
 
     def _step(self):
@@ -176,7 +176,6 @@ class ConcaveEnclosedCSFList:
 
             if self.refresher.is_time_to_refresh():
                 self.refresher.perform_refreshing(_metrics.concavity(self.curr_curve),
-                                                  self._curr_curve_area_percent_of_original(),
                                                   self._curr_curve_length_percent_of_original())
 
             # if self.saver.is_time_to_save():

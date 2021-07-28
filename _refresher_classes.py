@@ -28,10 +28,9 @@ class IterativeECSFRefresher(ECSFRefresher):
     def is_time_to_refresh(self):
         return not (self.curr_interation % self.refresh_iterative_interval)
 
-    def perform_refreshing(self, concavity: float, area_percent: float, length_percent: float):
+    def perform_refreshing(self, concavity: float, length_percent: float):
         print(f"Iteration: {self.curr_interation}, "
               f"Concavity: {concavity: .2f}, "
-              f"Area to original %: {area_percent: .2f}, "
               f"Length to original %: {length_percent: .2f}")
 
 
