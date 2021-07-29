@@ -56,7 +56,7 @@ class ConcaveEnclosedCSFList:
 
         self.resampling_factor = curve.shape[0] / _metrics.total_edge_length(curve)
 
-        # self.initial_area = _metrics.enclosed_area(curve)
+        self.initial_area = _metrics.enclosed_area(curve)
         self.initial_length = _metrics.total_edge_length(curve)
 
         # self.areas = [_metrics.enclosed_area(curve)]

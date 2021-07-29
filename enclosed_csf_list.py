@@ -18,6 +18,19 @@ def enclosed_csf_list(curve: np.ndarray, n_subsets: int, step_size: float = 1):
 
     csf_obj = csf_list.CSFList(concave_curves[-1])
 
-    convex_curves = csf_obj.mm_subset(n_subsets - num_concave_curves)
+    convex_curves = csf_obj.mm_subset(n_subsets - num_concave_curves + 1)
 
-    return concave_curves + convex_curves
+    return concave_curves + convex_curves[1:]
+
+
+def enclosed_csf_list_retry_on_fail(curve: np.ndarray, n_subsets: int, step_size: float = 1):
+    for attempt in range(4):
+        try:
+            ecsf_list = enclosed_csf_list(curve, n_subsets, step_size)
+        except:
+            step_size /= 5
+        else:
+            break
+    else:
+        raise Exception(f"Loop detected with step size {step_size}. Curve cannot be shortened.")
+
