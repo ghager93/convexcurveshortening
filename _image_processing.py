@@ -41,7 +41,7 @@ def save_image(image: np.ndarray, filename: str, date_stamp: bool = True):
     # Matrix must be of type np.uint8.
 
     if date_stamp:
-        filename = filename + datetime.now().strftime("%Y%m%d_%H%M%S") + '.bmp'
+        filename = filename + datetime.now().strftime("%Y%m%d_%H%M%S") + '.jpg'
 
     Image.fromarray(image).save(filename, 'JPEG')
 

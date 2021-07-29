@@ -1,7 +1,11 @@
 import numpy as np
+import skgeom
 
-import concave_enclosed_csf_list
-import csf_list
+from typing import List
+
+import _concave_enclosed_csf_list
+import _csf_list
+import _image_curve
 
 
 def enclosed_csf_list(curve: np.ndarray, n_subsets: int, step_size: float = 1):
@@ -15,7 +19,7 @@ def enclosed_csf_list(curve: np.ndarray, n_subsets: int, step_size: float = 1):
     If the algorithm fails, try a smaller step size.
     :return:  n_subsets long list of 2D numpy arrays.
     """
-    ecsf_obj = concave_enclosed_csf_list.ConcaveEnclosedCSFList(curve, step_size=step_size)
+    ecsf_obj = _concave_enclosed_csf_list.ConcaveEnclosedCSFList(curve, step_size=step_size)
 
     try:
         ecsf_obj.run()
@@ -26,7 +30,7 @@ def enclosed_csf_list(curve: np.ndarray, n_subsets: int, step_size: float = 1):
 
     concave_curves = ecsf_obj.get_n_curves(num_concave_curves)
 
-    csf_obj = csf_list.CSFList(concave_curves[-1])
+    csf_obj = _csf_list.CSFList(concave_curves[-1])
 
     convex_curves = csf_obj.mm_subset(n_subsets - num_concave_curves + 1)
 
@@ -55,3 +59,21 @@ def enclosed_csf_list_retry_on_fail(curve: np.ndarray, n_subsets: int, step_size
         raise Exception(f"Loop detected with step size {step_size}. Curve cannot be shortened.")
 
     return ecsf_list
+
+
+def to_image_matrix(ecsf_list: List):
+    polygon = skgeom.Polygon(ecsf_list[0])
+    bbox = polygon.bbox()
+    xmin, xmax = bbox.xmin(), bbox.xmax()
+    ymin, ymax = bbox.ymin(), bbox.ymax()
+    pad = 10
+    shape = int(xmax - xmin + 2*pad), int(ymax - ymin + 2*pad)
+
+    out = np.zeros(shape, dtype=float)
+    for i, curve in enumerate(ecsf_list):
+        try:
+            out = _image_curve.imprint_curve_on_matrix(curve, out, i+1)
+        except:
+            continue
+
+    return out

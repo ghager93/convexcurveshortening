@@ -6,7 +6,7 @@ from unittest import TestCase
 import _metrics
 import _utils
 import _vector_maths
-import curveshortening
+import _curveshortening_deprecated
 
 
 class Test(TestCase):
@@ -63,4 +63,4 @@ class Test(TestCase):
 
         output = input
 
-        self.assertTrue(np.allclose(curveshortening._reduce_concave_iterations_to_precision(input, 10), output))
+        self.assertTrue(np.allclose(_curveshortening_deprecated._reduce_concave_iterations_to_precision(input, 10), output))

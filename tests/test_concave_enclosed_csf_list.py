@@ -2,7 +2,7 @@ from unittest import TestCase
 
 import numpy as np
 
-from concave_enclosed_csf_list import ConcaveEnclosedCSFList
+from _concave_enclosed_csf_list import ConcaveEnclosedCSFList
 
 
 class TestConcaveEnclosedCSFList(TestCase):

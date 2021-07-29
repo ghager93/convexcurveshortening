@@ -1,12 +1,22 @@
 import numpy as np
 
-import curveshortening
+import _curveshortening_deprecated
 import _image_processing
 import _image_curve
 
 
 def silhouette_subset_image(path: str, destination: str, original_image_path: str = None,
                             n_silhouettes: int = 10, add_border: bool = True):
+    """
+    Deprecated. Create image of subsets from silhouette.
+
+    :param path: File path for smoothed silhouette.
+    :param destination: File path for output image.
+    :param original_image_path: File path for original silhouette image.
+    :param n_silhouettes: Number of subsets in output.
+    :param add_border: highlight the borders of each subset.
+    :return: None.
+    """
     image_curves = _image_curve_subset(path, n_silhouettes)
 
     silhouettes = [_fill_silhouette(image_curve) for image_curve in image_curves]
@@ -28,6 +38,14 @@ def silhouette_subset_image(path: str, destination: str, original_image_path: st
 
 
 def silhouette_subset(path: str, n_silhouettes: int = 10, original_image_path: str = None):
+    """
+    Deprecated. Create subsets for image from path. Flood fill each subset.
+
+    :param path:
+    :param n_silhouettes:
+    :param original_image_path:
+    :return: List of filled subsets
+    """
     image_curves = _image_curve_subset(path, n_silhouettes)
 
     if original_image_path is not None:
@@ -37,6 +55,12 @@ def silhouette_subset(path: str, n_silhouettes: int = 10, original_image_path: s
 
 
 def _add_original_image(path: str):
+    """
+    Deprecated. Return a dilated and flood filled image and its image curve.
+
+    :param path:
+    :return:
+    """
     image = _image_processing.load_image(path)
     image = np.pad(image, 10)
     curve = _image_curve.ImageCurve(image).curve()
@@ -47,13 +71,20 @@ def _add_original_image(path: str):
 
 
 def _curve_subset(path: str, n_silhouettes: int = 10):
+    """
+    Deprecated. ECSF algorithm with loading and preprocessing of image.
+
+    :param path:
+    :param n_silhouettes:
+    :return: list of image_curves from ECSF algorithm.
+    """
     im = _image_processing.load_image(path)
     im = np.pad(im, 10)
     im_opened = _image_processing.open_image(im, 50)
 
     curve = _image_curve.ImageCurve(im_opened).curve()
 
-    curves = curveshortening.enclosed_curve_shortening_flow(curve, n_silhouettes)
+    curves = _curveshortening_deprecated.enclosed_curve_shortening_flow(curve, n_silhouettes)
     curves[0] = _image_curve.ImageCurve(im).curve()
 
     return curves
@@ -65,7 +96,7 @@ def _curve_subset_preopened(path: str, unopened_path: str, n_silhouettes: int = 
 
     curve = _image_curve.ImageCurve(im).curve()
 
-    curves = curveshortening.enclosed_curve_shortening_flow(curve, n_silhouettes)
+    curves = _curveshortening_deprecated.enclosed_curve_shortening_flow(curve, n_silhouettes)
     curves[0] = _image_curve.ImageCurve(_image_processing.load_image(unopened_path)).curve()
 
     return curves

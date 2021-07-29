@@ -5,7 +5,7 @@ from unittest import TestCase
 
 import _metrics
 import _vector_maths
-import curveshortening
+import _curveshortening_deprecated
 
 
 class Test(TestCase):

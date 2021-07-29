@@ -147,6 +147,26 @@ def curve_to_image_matrix(curve: np.ndarray, shape: Tuple) -> np.ndarray:
     return image_matrix
 
 
+def imprint_curve_on_matrix(curve: np.ndarray, matrix: np.ndarray, value: float = 1):
+    matrix_copy = np.copy(matrix)
+    try:
+        matrix_copy[tuple(np.floor(p).astype(int) for p in zip(*curve))] = value
+    except Exception as e:
+        raise e
+
+    return matrix_copy
+
+
+def overlay_curve_on_matrix(curve: np.ndarray, matrix: np.ndarray, value: float = 1):
+    matrix_copy = np.copy(matrix)
+    try:
+        matrix_copy[tuple(np.floor(p).astype(int) for p in zip(*curve))] += value
+    except Exception as e:
+        raise e
+
+    return matrix_copy
+
+
 def curve_to_image_matrix_filled(curve: np.ndarray, shape: Tuple):
     # Curve is converted to a matrix of pixels.
     # It is then dilated by a 3x3 cross kernel to close the curve for filling.
