@@ -14,21 +14,21 @@ class Test(TestCase):
     test_file_curve_downsample = os.path.join(test_dir, "heart_curve_downsample_100.npy")
 
     def test__curvature_parabola_y_equals_x_squared(self):
-        inputx = np.linspace(-4, 4, 100)
-        inputy = inputx**2
+        test_inputx = np.linspace(-4, 4, 100)
+        test_inputy = test_inputx**2
 
-        input = np.vstack((inputy, inputx)).transpose()
+        test_input = np.vstack((test_inputy, test_inputx)).transpose()
 
-        output = 2 / (4*inputx**2 + 1)**(3/2)
+        output = 2 / (4*test_inputx**2 + 1)**(3/2)
 
-        self.assertTrue(np.allclose(_metrics.curvature(input)[1:-1], output[1:-1], atol=1.e-3, rtol=1.e-1))
+        self.assertTrue(np.allclose(_metrics.curvature(test_input)[1:-1], output[1:-1], atol=1.e-3, rtol=1.e-1))
 
     def test_curvature_straight_line(self):
-        input = np.array([np.arange(10), np.arange(10)]).transpose()
+        test_input = np.array([np.arange(10), np.arange(10)]).transpose()
 
         output = np.zeros(10)
 
-        self.assertTrue(np.allclose(_metrics.curvature(input)[1:-1], output[1:-1]))
+        self.assertTrue(np.allclose(_metrics.curvature(test_input)[1:-1], output[1:-1]))
 
     def test_normalised_curvature(self):
         self.fail()
@@ -37,18 +37,18 @@ class Test(TestCase):
         self.fail()
 
     def test_area_unit_square(self):
-        input = np.array([[0, 0], [0, 1], [1, 1], [1, 0]])
+        test_input = np.array([[0, 0], [0, 1], [1, 1], [1, 0]])
 
         output = 1
 
-        self.assertEqual(_metrics.enclosed_area(input), output)
+        self.assertEqual(_metrics.enclosed_area(test_input), output)
 
     def test_area_oval_1000_points(self):
-        inputx = 100 * np.cos(np.linspace(0, 2*np.pi, 1000, endpoint=False))
-        inputy = 20 * np.sin(np.linspace(0, 2*np.pi, 1000, endpoint=False))
+        test_inputx = 100 * np.cos(np.linspace(0, 2*np.pi, 1000, endpoint=False))
+        test_inputy = 20 * np.sin(np.linspace(0, 2*np.pi, 1000, endpoint=False))
 
-        input = np.vstack((inputx, inputy)).transpose()
+        test_input = np.vstack((test_inputx, test_inputy)).transpose()
 
         output = 100 * 20 * np.pi
 
-        self.assertTrue(np.isclose(_metrics.enclosed_area(input), output))
+        self.assertTrue(np.isclose(_metrics.enclosed_area(test_input), output))

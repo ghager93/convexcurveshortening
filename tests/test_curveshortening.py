@@ -39,28 +39,28 @@ class Test(TestCase):
         self.fail()
 
     def test__resample_factor_equals_1_over_100(self):
-        input = np.load(self.test_file_curve)
+        test_input = np.load(self.test_file_curve)
         output = np.load(self.test_file_curve_downsample)
 
-        self.assertTrue(np.allclose(_utils.resample(input, 1 / 100), output))
+        self.assertTrue(np.allclose(_utils.resample(test_input, 1 / 100), output))
 
     def test__resample_factor_equals_0(self):
-        input = np.load(self.test_file_curve)
+        test_input = np.load(self.test_file_curve)
 
-        self.assertTrue(len(_utils.resample(input, 0)) == 0)
+        self.assertTrue(len(_utils.resample(test_input, 0)) == 0)
 
-    def test__resample_returns_input_with_no_change(self):
-        input = np.array([[0, 0], [0, 2], [2, 2], [2, 0]])
+    def test__resample_returns_test_input_with_no_change(self):
+        test_input = np.array([[0, 0], [0, 2], [2, 2], [2, 0]])
         factor = 4 / 8
 
-        self.assertTrue(np.allclose(_utils.resample(input, factor), input))
+        self.assertTrue(np.allclose(_utils.resample(test_input, factor), test_input))
 
     def test__reduce_concave_iterations_to_precision_single_curve_circle_precision_10(self):
-        inputx = np.cos(2 * np.pi * np.linspace(0, 1, 100, endpoint=False))
-        inputy = np.sin(2 * np.pi * np.linspace(0, 1, 100, endpoint=False))
+        test_inputx = np.cos(2 * np.pi * np.linspace(0, 1, 100, endpoint=False))
+        test_inputy = np.sin(2 * np.pi * np.linspace(0, 1, 100, endpoint=False))
 
-        input = [np.vstack((inputx, inputy)).transpose()]
+        test_input = [np.vstack((test_inputx, test_inputy)).transpose()]
 
-        output = input
+        output = test_input
 
-        self.assertTrue(np.allclose(_curveshortening_deprecated._reduce_concave_iterations_to_precision(input, 10), output))
+        self.assertTrue(np.allclose(_curveshortening_deprecated._reduce_concave_iterations_to_precision(test_input, 10), output))

@@ -1,18 +1,22 @@
 import time
+from abc import ABCMeta, abstractmethod
 
 
-class ECSFTerminator:
+class TerminatorInterface(metaclass=ABCMeta):
+    @abstractmethod
     def start(self):
         pass
 
+    @abstractmethod
     def next_step(self):
         pass
 
+    @abstractmethod
     def is_finished(self):
         pass
 
 
-class IterativeECSFTerminator(ECSFTerminator):
+class IterativeECSFTerminator(TerminatorInterface):
     def __init__(self, max_iterations: int):
         self.max_iterations = max_iterations
         self.curr_iterations = 0
@@ -27,7 +31,7 @@ class IterativeECSFTerminator(ECSFTerminator):
         return self.curr_iterations >= self.max_iterations
 
 
-class TimeECSFTerminator(ECSFTerminator):
+class TimeECSFTerminator(TerminatorInterface):
     def __init__(self, max_time: float):
         self.max_time = max_time
         self.start_time = time.time()
@@ -41,7 +45,7 @@ class TimeECSFTerminator(ECSFTerminator):
         return time.time() - self.start_time >= self.max_time
 
 
-class ConditionalECSFTerminator(ECSFTerminator):
+class ConditionalECSFTerminator(TerminatorInterface):
     def __init__(self, concavity_threshold: float):
         self.concavity_threshold = concavity_threshold
         self.curr_concavity = concavity_threshold + 1

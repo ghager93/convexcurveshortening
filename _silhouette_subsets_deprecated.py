@@ -34,7 +34,6 @@ def silhouette_subset_image(path: str, destination: str, original_image_path: st
         _image_processing.save_image(image, destination)
     except ValueError:
         print('Image curves not same size.')
-        pass
 
 
 def silhouette_subset(path: str, n_silhouettes: int = 10, original_image_path: str = None):
@@ -112,7 +111,6 @@ def _image_curve_subset(path: str, n_silhouettes: int = 10):
 
 
 def _fill_silhouette(image: np.ndarray):
-    # dilated_image = _image_processing.dilate_image(image)
     return _image_processing.flood_fill(image)
 
 

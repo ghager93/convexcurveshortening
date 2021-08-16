@@ -11,6 +11,9 @@ from datetime import datetime
 import _structuring_element
 
 
+EXCEPTION_STRING_WRONG_DIMENSIONS = 'Image must be 2D.'
+
+
 def load_image(filename: str):
     im = None
 
@@ -24,7 +27,7 @@ def load_image(filename: str):
         print("File does not exist.")
     except PIL.UnidentifiedImageError:
         print("Image format not supported.")
-    except:
+    except Exception:
         print("Something went wrong.")
 
     return im
@@ -48,7 +51,7 @@ def save_image(image: np.ndarray, filename: str, date_stamp: bool = True):
 
 def smooth_image(image: np.ndarray, factor: int = 1):
     if image.ndim != 2:
-        raise ValueError('Image must be 2D.')
+        raise ValueError(EXCEPTION_STRING_WRONG_DIMENSIONS)
     if factor <= 0:
         raise ValueError('Smoothing factor must be positive integer.')
     return morphology.binary_closing(morphology.binary_opening(image, _structuring_element.circle(factor).kernel),
@@ -57,7 +60,7 @@ def smooth_image(image: np.ndarray, factor: int = 1):
 
 def open_image(image: np.ndarray, factor: int = 1):
     if image.ndim != 2:
-        raise ValueError('Image must be 2D.')
+        raise ValueError(EXCEPTION_STRING_WRONG_DIMENSIONS)
     if factor <= 0:
         raise ValueError('Opening factor must be positive integer.')
     return morphology.binary_opening(image, _structuring_element.circle(factor).kernel)
@@ -65,7 +68,7 @@ def open_image(image: np.ndarray, factor: int = 1):
 
 def dilate_image(image: np.ndarray, factor: int = 1):
     if image.ndim != 2:
-        raise ValueError('Image must be 2D.')
+        raise ValueError(EXCEPTION_STRING_WRONG_DIMENSIONS)
     if factor <= 0:
         raise ValueError('Dilation factor must be positive integer.')
     return morphology.binary_dilation(image, _structuring_element.circle(factor).kernel)

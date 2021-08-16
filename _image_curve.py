@@ -25,7 +25,6 @@ class ImageCurve:
         # Added single pad layer to prevent edge cases in search.
         self._im = np.pad(self._im, 1)
 
-
     def _starting_point(self):
         # List of vertices starts at the vertex with minimum index (most top-left corner vertex).
 
@@ -78,8 +77,6 @@ class ImageCurve:
     def _next_neighbour(self, point: np.ndarray):
         neighbours = list()
         neighbourhood = self._neighbourhood(point)
-        # [neighbours.append(point + n) for n in neighbour_array.side_neighbour_coordinates(neighbourhood)]
-        # [neighbours.append(point + n) for n in neighbour_array.diagonal_neighbour_coordinates(neighbourhood)]
         [neighbours.append(point + n) for n in _neighbour_array.side_neighbour_coordinates(neighbourhood) |
          _neighbour_array.diagonal_neighbour_coordinates(neighbourhood)]
 
@@ -94,9 +91,6 @@ class ImageCurve:
 
     def _unpad(self, point: np.ndarray):
         return point - (1, 1)
-
-    # def _unpad_list(self, list):
-    #     return [p - (1, 1) for p in list]
 
     def curve(self):
         #  Create list of vertices, starting at the top-leftmost vertex and traversing clockwise using DFS.
@@ -149,20 +143,14 @@ def curve_to_image_matrix(curve: np.ndarray, shape: Tuple) -> np.ndarray:
 
 def imprint_curve_on_matrix(curve: np.ndarray, matrix: np.ndarray, value: float = 1):
     matrix_copy = np.copy(matrix)
-    try:
-        matrix_copy[tuple(np.floor(p).astype(int) for p in zip(*curve))] = value
-    except Exception as e:
-        raise e
+    matrix_copy[tuple(np.floor(p).astype(int) for p in zip(*curve))] = value
 
     return matrix_copy
 
 
 def overlay_curve_on_matrix(curve: np.ndarray, matrix: np.ndarray, value: float = 1):
     matrix_copy = np.copy(matrix)
-    try:
-        matrix_copy[tuple(np.floor(p).astype(int) for p in zip(*curve))] += value
-    except Exception as e:
-        raise e
+    matrix_copy[tuple(np.floor(p).astype(int) for p in zip(*curve))] += value
 
     return matrix_copy
 

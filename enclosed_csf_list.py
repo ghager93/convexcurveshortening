@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 import skgeom
 
@@ -24,6 +26,7 @@ def enclosed_csf_list(curve: np.ndarray, n_subsets: int, step_size: float = 1):
     try:
         ecsf_obj.run()
     except Exception as curve_loop_detected:
+        logging.exception('loop in curve detected')
         raise curve_loop_detected
 
     num_concave_curves = max(1, int((1 - ecsf_obj.last_to_first_curve_area_ratio()) * n_subsets))
@@ -48,10 +51,10 @@ def enclosed_csf_list_retry_on_fail(curve: np.ndarray, n_subsets: int, step_size
     If the algorithm fails, try a smaller step size.
     :return:  n_subsets long list of 2D numpy arrays.
     """
-    for attempt in range(4):
+    for _ in range(4):
         try:
-            ecsf_list =  enclosed_csf_list(curve, n_subsets, step_size)
-        except:
+            ecsf_list = enclosed_csf_list(curve, n_subsets, step_size)
+        except Exception:
             step_size /= 5
         else:
             break
@@ -73,7 +76,7 @@ def to_image_matrix(ecsf_list: List):
     for i, curve in enumerate(ecsf_list):
         try:
             out = _image_curve.imprint_curve_on_matrix(curve, out, i+1)
-        except:
+        except Exception:
             continue
 
     return out

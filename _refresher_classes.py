@@ -1,20 +1,28 @@
 import time
+from abc import ABCMeta, abstractmethod
 
 
-class ECSFRefresher:
+class RefresherInterface(metaclass=ABCMeta):
+    @abstractmethod
     def start(self):
         pass
 
+    @abstractmethod
     def next_step(self):
         pass
 
+    @abstractmethod
     def is_time_to_refresh(self):
         pass
 
+
+class ECSFRefresher():
+    @staticmethod
     def perform_refreshing(self, concavity: float, area_percent: float):
         print(f"Concavity: {concavity: .2f}, Area to original %: {area_percent: .2f}")
 
-class IterativeECSFRefresher(ECSFRefresher):
+
+class IterativeECSFRefresher(RefresherInterface, ECSFRefresher):
     def __init__(self, refresh_iterative_interval: int):
         self.refresh_iterative_interval = refresh_iterative_interval
         self.curr_interation = 0

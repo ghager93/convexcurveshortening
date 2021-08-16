@@ -59,7 +59,6 @@ class ConcaveEnclosedCSFList:
         self.initial_area = _metrics.enclosed_area(curve)
         self.initial_length = _metrics.total_edge_length(curve)
 
-        # self.areas = [_metrics.enclosed_area(curve)]
         self.lengths = [_metrics.total_edge_length(curve)]
 
         self.refresher = self._set_refresher()
@@ -137,10 +136,7 @@ class ConcaveEnclosedCSFList:
 
         self.curr_curve = self.initial_curve
 
-        # self.curves = [self.initial_curve]
-        # self.areas = [_metrics.enclosed_area(self.initial_curve)]
         self.curves = []
-        # self.areas = []
         self.lengths = []
 
     def _step(self):
@@ -167,10 +163,6 @@ class ConcaveEnclosedCSFList:
                     or self.conditional_terminator.is_finished()):
                 break
 
-            # if self.intersecting_curve_flag:
-            #     print("Intersection in subset curve, try a smaller step size.")
-            #     break
-
             if self.intersecting_curve_flag:
                 raise Exception("Intersection in subset curve, try a smaller step size.")
 
@@ -178,15 +170,8 @@ class ConcaveEnclosedCSFList:
                 self.refresher.perform_refreshing(_metrics.concavity(self.curr_curve),
                                                   self._curr_curve_length_percent_of_original())
 
-            # if self.saver.is_time_to_save():
-            #     self.areas.append(_metrics.enclosed_area(self.curr_curve))
-            #     if len(self.areas) > 1 and self.areas[-1] > self.areas[-2]:
-            #         self.intersecting_curve_flag = True
-            #     self.curves.append(self.curr_curve)
-
             if self.saver.is_time_to_save():
                 self.lengths.append(_metrics.total_edge_length(self.curr_curve))
-                # self.areas.append(_metrics.enclosed_area(self.curr_curve))
                 if len(self.lengths) > 1 and self.lengths[-1] > self.lengths[-2]:
                     self.intersecting_curve_flag = True
                 self.curves.append(self.curr_curve)

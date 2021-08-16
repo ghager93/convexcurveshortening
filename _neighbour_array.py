@@ -108,7 +108,7 @@ def _number_of_01_patterns_in_ordered_neighbours_set(b: int):
     mask = 0b11000000
     pattern = 0b01000000
     cnt = 0
-    for i in range(7):
+    for _ in range(7):
         if mask & b == pattern:
             cnt += 1
         mask >>= 1
@@ -124,7 +124,7 @@ def _number_of_01_patterns_in_ordered_second_neighbours_set(b):
     mask = 0b1100000000000000
     pattern = 0b0100000000000000
     cnt = 0
-    for i in range(15):
+    for _ in range(15):
         if mask & b == pattern:
             cnt += 1
         mask >>= 1

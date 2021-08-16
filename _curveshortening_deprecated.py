@@ -53,7 +53,7 @@ def enclosed_curve_shortening_flow(curve: np.ndarray,
 
     curves = [curve]
 
-    for i in range(max_iterations):
+    for _ in range(max_iterations):
 
         if _break_condition_ecsf(curve):
             break
@@ -95,7 +95,6 @@ def curve_shortening_flow(curve: np.ndarray, n_curves: int, return_initial_curve
     if curve.shape[1] != 2:
         raise ValueError('Curve must have the shape Nx2, i.e. N rows of 2D coordinates.')
 
-    n_vertices = curve.shape[0]
     linear_stds = _linear_step_sigmas(curve, n_curves, startpoint=return_initial_curve)
 
     curves = [_mokhtarian_mackworth92(curve, sigma) for sigma in linear_stds]
@@ -125,7 +124,6 @@ def _mokhtarian_mackworth92(curve, sigma):
 
     # Apply Gaussian filter, followed by resampling.
 
-    # return _resample(_gaussian_filter(curve, sigma), 1 / _edge_length(curve).mean())
     return _utils.gaussian_filter(curve, sigma)
 
 
